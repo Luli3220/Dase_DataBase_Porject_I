@@ -105,7 +105,8 @@ def test_full_browser_flow(browser,live_server,db):
     # Login return link: an unauthenticated reader is redirected and registration preserves next.
     b.goto(public_url);expect(b.get_by_role('heading',name='欢迎回来')).to_be_visible()
     b.get_by_role('link',name='注册账号').click()
-    b.get_by_label('用户名',exact=True).fill('ui_reader_'+uuid4().hex[:8]);b.get_by_label('密码',exact=True).fill(secrets.token_urlsafe(18));b.get_by_role('button',name='注册并登录').click()
+    reader_name='ui_reader_'+uuid4().hex[:8]
+    b.get_by_label('用户名',exact=True).fill(reader_name);b.get_by_label('密码',exact=True).fill(secrets.token_urlsafe(18));b.get_by_role('button',name='注册并登录').click()
     expect(b.get_by_role('heading',name='是否有编程经验？')).to_be_visible()
     b.get_by_label('没有',exact=True).check();b.get_by_role('button',name='下一步').click()
     expect(b.get_by_role('heading',name='每周学习几小时？')).to_be_visible()
@@ -129,9 +130,13 @@ def test_full_browser_flow(browser,live_server,db):
     a.locator('#anonymous').uncheck();a.get_by_role('button',name='保存并发布').click();expect(a.get_by_text('发布成功。公开填写链接：')).to_be_visible()
     b.get_by_role('button',name='确认提交').click();expect(b.locator('#error')).to_contain_text('问卷已更新，需要刷新重填')
     b.reload();b.get_by_label('没有',exact=True).check();b.get_by_role('button',name='下一步').click();b.get_by_label('数字回答').fill('8');b.get_by_role('button',name='下一步').click();b.get_by_role('button',name='确认提交').click();expect(b.get_by_role('heading',name='提交成功')).to_be_visible()
-    a.goto(f'{base}/surveys/{survey_id}/statistics');a.locator('#version').select_option('1');expect(a.locator('.metric').nth(1).locator('strong')).to_have_text('0')
+    a.goto(f'{base}/surveys/{survey_id}/statistics');expect(a.locator('tbody')).to_contain_text(reader_name)
+    reader_id=reader_context.request.get(base+'/api/me').json()['user']['id']
+    expect(a.locator('tbody')).not_to_contain_text(reader_id)
+    a.locator('#version').select_option('1');expect(a.locator('.metric').nth(1).locator('strong')).to_have_text('0')
     a.locator('#mode').select_option('historical_raw');expect(a.locator('.metric').nth(2).locator('strong')).to_have_text('2')
-    expect(a.locator('tbody')).not_to_contain_text('ui_reader_')
+    expect(a.locator('tbody')).not_to_contain_text(reader_name)
+    expect(a.locator('tbody')).not_to_contain_text(reader_id)
     a.goto(base+'/dashboard');a.once('dialog',lambda dialog:dialog.accept());a.get_by_role('button',name='关闭',exact=True).click();expect(a.get_by_text('已关闭',exact=True)).to_be_visible()
     b.goto(public_url);expect(b.get_by_role('heading',name='暂时无法打开')).to_be_visible();expect(b.get_by_text('问卷已关闭',exact=True)).to_be_visible()
     assert page_errors==[],page_errors

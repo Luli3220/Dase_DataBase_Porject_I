@@ -42,3 +42,11 @@ AI的价值：生成分层实现及测试、执行真实环境、检查匿名/�
 用户实际指令：“我觉得你可以整理一下，就是prompt可以放一个目录，然后source可以放一个目录，等等。目录干净一些，做好索引即可”。AI将原始要求、Prompt、实现和文档分入requirements/prompts/source/docs，新增根目录及各目录README索引；通过Git重命名保留历史。原始PDF和Prompt正文不变，MongoDB数据未移动或删除，.env仍忽略。同步修正PowerShell定位、浏览器证据路径、打包根目录及文档链接；安装/测试脚本增加Push/Pop-Location，避免改变调用者目录。目录迁移涉及运行路径，重新执行完整测试并将证据单独保存到docs/evidence/restructure；实际结果见该目录及测试报告，不用旧结果冒充本轮运行。
 
 本轮实际回归102 passed / 0 failed / 0 skipped，31.82秒；校对原始材料和24个业务文件字节、Markdown链接、脚本入口及Compose配置。实际运行setup时已有.env保持不变，已在source重新启动本机服务。首次测试记录不覆写；打包清单按新目录重建，再正常提交到原GitHub仓库。
+
+## 后续：最小修正非匿名答卷的注册用户名
+
+用户实际要求：对Luli3220/Dase_DataBase_Porject_I作“最小范围的功能修正”，检查owner_submission/list_owner，非匿名增加来自users.username的respondentUsername，批量查询避免逐条查询，匿名绝不返回ID/用户名、保留历史匿名快照，网页优先用户名，并补API/集成测试、文档和真实测试结果；禁止架构重构、统计口径和规则引擎改动。
+
+AI修改source/app/services/submissions.py：DTO增加可选用户名参数，仅非匿名输出两个身份字段；分页聚合后收集本页非匿名去重ID，一次users.find投影_id/username，继续使用同一snapshot事务，全匿名/空页不查。网页只修改显示表达式，优先用户名，null回退旧ID，匿名分支不变。缺失用户的null策略保留旧ID兼容，无数据库字段冗余或迁移。API、数据库/系统说明、测试用例与本日志同步更新。
+
+新增3个DTO和8个API/真实Mongo集成实例，含命令监听验证查询次数、页外账号不读取、事务一致，双向跨版本保护和缺失用户；原浏览器流程补用户名与历史匿名断言。首次测试因Mongo未运行出现4 passed/7 setup errors，已保留日志；复用原.local目录启动rs0后，新增11项通过（7.02秒）。完整原有+新增测试实际113 passed/0 failed/0 errors/0 skipped（37.82秒），JS语法和依赖检查通过。证据单独保存在docs/evidence/respondent-username，未覆盖历史验收或将未运行测试标记通过。以上均由AI执行，未声称人工审查。

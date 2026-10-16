@@ -17,18 +17,18 @@
     },
     {
       "path": "docs/ai-usage-log.md",
-      "sha256": "23f5839b5626aa8ff56a20a363ffa57c3c83e41c6b7fd029593b80add9bcc1a7",
-      "bytes": 6883
+      "sha256": "c024e2f41707cb522cb1d001444c324414f80f99006e3f996856050e9a6f0a16",
+      "bytes": 8514
     },
     {
       "path": "docs/api.md",
-      "sha256": "cbef27a8386aa49c2a177eebb31e8efe32b66fb559e8651cf22bbf512e328c81",
-      "bytes": 6857
+      "sha256": "ca4c3cac0fea1cb072db262f2304b7a7f713fdcf4763ab695ac939c5021eb471",
+      "bytes": 7964
     },
     {
       "path": "docs/database-design.md",
-      "sha256": "786a15709cda6ada6dee0969b7a0d5864ce2daac2554fb990a07403c7c0f93da",
-      "bytes": 5464
+      "sha256": "58c7700b792b36836d7e402c20ac6c44fd56917a1bf33f8b5fed13f94862b959",
+      "bytes": 6120
     },
     {
       "path": "docs/evidence/browser-server.log",
@@ -126,6 +126,66 @@
       "bytes": 11024
     },
     {
+      "path": "docs/evidence/respondent-username/browser-server.log",
+      "sha256": "1f50daf413f4a4f46611790cd9b82209ea067aafed4d51465de5b0e1427ee669",
+      "bytes": 1402
+    },
+    {
+      "path": "docs/evidence/respondent-username/editor.png",
+      "sha256": "40ac18200458c6ecde08626f7b67c83ae27a2f0e7ea0695b4a573d721aa01ceb",
+      "bytes": 218077
+    },
+    {
+      "path": "docs/evidence/respondent-username/full.txt",
+      "sha256": "14c7841104de3fd9bb84a7f12584c441b7331d1de7735f4d8db76c97348e4a92",
+      "bytes": 273
+    },
+    {
+      "path": "docs/evidence/respondent-username/full.xml",
+      "sha256": "21ead506bb6637cf63481b186a7992558f4659aacf39eb8cc3ebce3ffccd41b8",
+      "bytes": 13048
+    },
+    {
+      "path": "docs/evidence/respondent-username/initial-no-mongo.txt",
+      "sha256": "35e9b20ea7892647400ef41b1651544a02ce6310be35afb49dc88249784cb21e",
+      "bytes": 33796
+    },
+    {
+      "path": "docs/evidence/respondent-username/initial-no-mongo.xml",
+      "sha256": "10f20fc24d851ffc82b7991c489c07f18cbe4302f4f6ac3f8a6f3b9255cf3955",
+      "bytes": 38904
+    },
+    {
+      "path": "docs/evidence/respondent-username/mobile.png",
+      "sha256": "cfcff01933278fec2938e01e4c8d6c5cb66cc917dee71c7c2989f84b75f4ae27",
+      "bytes": 69949
+    },
+    {
+      "path": "docs/evidence/respondent-username/published.png",
+      "sha256": "f7b1730ba295dc676a408b4c4d9a0f4dd1c221c6bbc352a85f60efd48fdd9d9b",
+      "bytes": 72706
+    },
+    {
+      "path": "docs/evidence/respondent-username/README.md",
+      "sha256": "38b234fddc2a7093a27a4f9e491655c64c2decb4b7abea22c387087363ac98a6",
+      "bytes": 2184
+    },
+    {
+      "path": "docs/evidence/respondent-username/statistics.png",
+      "sha256": "7e0d38696762fe8223b1aef9ec2b832ddf3d98b3bbedf3b1bb2bbc9c40d420e9",
+      "bytes": 122614
+    },
+    {
+      "path": "docs/evidence/respondent-username/targeted.txt",
+      "sha256": "1db00942df560e94b9159d7cbbeb960080a87d4b3ca5110a449f3df07d7727a7",
+      "bytes": 194
+    },
+    {
+      "path": "docs/evidence/respondent-username/targeted.xml",
+      "sha256": "c7af0d7ffe7ed49e559c1170f70404439197b7ca407d33cd91c000a9ba140e3f",
+      "bytes": 1852
+    },
+    {
       "path": "docs/evidence/restructure/browser-server.log",
       "sha256": "dbd9cb9c7a0f2614071a2c73d253d02db0fe127f625408a6107b8bf1defcb6dd",
       "bytes": 1402
@@ -217,8 +277,8 @@
     },
     {
       "path": "docs/README.md",
-      "sha256": "4a155af88a160a27ba2d20645a53323583fb57aa4a297a008b71c8bd53a3b5d8",
-      "bytes": 2041
+      "sha256": "1b0e6ccf6b8f632de878d83713dd2a1c60eb23463044361de994774270d4e598",
+      "bytes": 2171
     },
     {
       "path": "docs/repository-layout.md",
@@ -242,18 +302,18 @@
     },
     {
       "path": "docs/system-design.md",
-      "sha256": "eec4b51a6f5a17ab1ff28d7b51c6ec1fc951b18053152fb5e31514123ab72942",
-      "bytes": 3856
+      "sha256": "a4177465f84105ff18e3a1beed5086801d2da9ed9c72cdd3781f06f2df7f8bba",
+      "bytes": 4046
     },
     {
       "path": "docs/test-cases.md",
-      "sha256": "757383d34445821714f7978a2653b6ad682b32d9778fb350ee3b5410762bf1c7",
-      "bytes": 7436
+      "sha256": "759ffc81217edc8dbe8bb32f2cfc19062cc7bd1556dbe65802382244a7e6072d",
+      "bytes": 9120
     },
     {
       "path": "docs/test-report.md",
-      "sha256": "0d15bcd300f067aa646887e5979b951a1a302e1e84879e791a8476d57f30a33b",
-      "bytes": 6277
+      "sha256": "d70c4b99b23b8f53d5be9c333fca46df353b1b2651997b092b8374e335b033f4",
+      "bytes": 7882
     },
     {
       "path": "prompts/00-总控Prompt.md",
@@ -412,8 +472,8 @@
     },
     {
       "path": "source/app/services/submissions.py",
-      "sha256": "49c16eec09064e9338cc8e78b72e53f9df894757f64d3532f912781af96ef300",
-      "bytes": 5303
+      "sha256": "49e10ade2cbe371e934b1976134ebee2a52dd79df9acab9457f2a96d06e658ea",
+      "bytes": 5848
     },
     {
       "path": "source/app/services/surveys.py",
@@ -422,8 +482,8 @@
     },
     {
       "path": "source/app/static/app.js",
-      "sha256": "669593dbc243c947d331a178f4cc1b063fa87c95012464756914662775f74dd3",
-      "bytes": 30336
+      "sha256": "e82d82c3f9601d623984aaad9e7f8ab55b168de58d24957cd422325dabd2b886",
+      "bytes": 30360
     },
     {
       "path": "source/app/static/style.css",
@@ -541,14 +601,24 @@
       "bytes": 6221
     },
     {
+      "path": "source/tests/integration/test_respondent_usernames.py",
+      "sha256": "e70292e1e6acfd5386d8cbe1d4474ca1a5a4a03701392cae3f9736b4d7755a20",
+      "bytes": 6413
+    },
+    {
+      "path": "source/tests/unit/test_owner_submission.py",
+      "sha256": "ef3f068b1471f5e00494e5f57adb74b4518380a3d123f67b1bb456cadc8bb2f7",
+      "bytes": 1071
+    },
+    {
       "path": "source/tests/unit/test_rules.py",
       "sha256": "d50799922ffc6b600904a05ade90e659a827e7e4ba53e58d6ee1250fdfaa4d3a",
       "bytes": 5858
     },
     {
       "path": "source/tests/web/test_browser.py",
-      "sha256": "3ebc640b45943fdd2780f68896df97a8c15c2b56f2c1af674aa5a69fc56dd164",
-      "bytes": 11580
+      "sha256": "1cd37a821278fa09594dbe4effac9d963aff90abe59d209d5eda2d37ebd5acc8",
+      "bytes": 11869
     }
   ],
   "excludes": [

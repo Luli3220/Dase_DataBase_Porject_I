@@ -10,11 +10,13 @@ from app.services.surveys import SurveyService
 from app.models.documents import SubmissionDocument
 
 
-def owner_submission(record):
+def owner_submission(record, respondent_username=None):
     # Allowlist DTO: no requestId, digest, nested internal metadata or account map.
     result = {"id": str(record["_id"]), "surveyVersion": record["surveyVersion"], "anonymous": record["anonymousAtSubmission"],
               "answers": record["answers"], "submittedAt": record["submittedAt"]}
-    if not record["anonymousAtSubmission"]: result["respondentId"] = str(record["respondentId"])
+    if not record["anonymousAtSubmission"]:
+        result["respondentId"] = str(record["respondentId"])
+        result["respondentUsername"] = respondent_username
     return result
 
 
@@ -70,6 +72,11 @@ class SubmissionService:
             selected_version = version if version is not None else s["publishedVersion"]
             _, pipeline = self.selected(s, selected_version, mode, session)
             result = list(self.db.submissions.aggregate(pipeline + [{"$facet": {"rows": [{"$skip": offset}, {"$limit": limit}], "total": [{"$count": "n"}]}}], session=session))[0]
+            # Resolve only this page's non-anonymous identities, once, in the same snapshot.
+            respondent_ids = {x["respondentId"] for x in result["rows"] if not x["anonymousAtSubmission"]}
+            usernames = {u["_id"]: u["username"] for u in self.db.users.find(
+                {"_id": {"$in": list(respondent_ids)}}, {"_id": 1, "username": 1}, session=session
+            )} if respondent_ids else {}
             return {"version": selected_version, "mode": mode, "total": result["total"][0]["n"] if result["total"] else 0,
-                    "offset": offset, "limit": limit, "items": [owner_submission(x) for x in result["rows"]]}
+                    "offset": offset, "limit": limit, "items": [owner_submission(x, usernames.get(x["respondentId"])) for x in result["rows"]]}
         return transaction(self.db, operation)

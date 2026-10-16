@@ -69,7 +69,17 @@ version省略明确采用publishedVersion。统计mode默认current_effective；
  "questions":[{"questionId":"age","title":"年龄","type":"number","answeredCount":1,"values":[20],"offset":0,"limit":50,"mean":20.0}]}
 ```
 
-选择题返回options:[{id,label,count}]；多选计数和可超过回答人数。文本/数字values分页（offset默认0，limit默认50，1..100），均值和人数始终基于全部选中答卷，无数字mean:null。答卷列表独立分页。匿名记录只含id/surveyVersion/anonymous/answers/submittedAt；实名额外respondentId，不返回用户名、requestId、摘要或内部文档。
+选择题返回options:[{id,label,count}]；多选计数和可超过回答人数。文本/数字values分页（offset默认0，limit默认50，1..100），均值和人数始终基于全部选中答卷，无数字mean:null。答卷列表独立分页。匿名记录只含id/surveyVersion/anonymous/answers/submittedAt，绝不包含respondentId或respondentUsername；非匿名额外返回respondentId和respondentUsername，不返回requestId、摘要或内部文档。
+
+`GET /api/surveys/{surveyId}/submissions`的非匿名身份示例：
+
+```json
+{"id":"<submissionObjectId>","surveyVersion":2,"anonymous":false,"respondentId":"<userObjectId>","respondentUsername":"reader_actual","answers":[],"submittedAt":"2026-10-16T00:00:00Z"}
+```
+
+respondentUsername来自users.username，为查询时的注册用户名，属于读取时派生字段，不写入submissions。服务只对当前页非匿名答卷的去重用户ID执行一次批量查询，且与答卷列表共用snapshot事务；全匿名页/空页不查询用户名。若关联账号缺失，非匿名记录的respondentUsername为null，保留原respondentId，网页优先显示用户名、缺失时回退ID。此为兼容性新增字段，不改变分页、统计或提交格式。
+
+身份可见性只取决于每份答卷的anonymousAtSubmission；即使公开版本已改为非匿名，旧匿名记录也不返回两个身份字段；后续改为匿名也不反向修改已有非匿名承诺。统计接口依旧不包含账号身份。
 
 ## 会话和错误
 

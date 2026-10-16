@@ -51,3 +51,13 @@ editor.png：四类题及规则编辑；published.png：真实发布结果与链
 迁移后在source执行：`../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/evidence/restructure/pytest.xml`，并设置`TEST_EVIDENCE_DIR=../docs/evidence/restructure`。实际 **102 passed / 0 failed / 0 skipped，31.82秒**，证据独立保存在[restructure/](evidence/restructure/README.md)，没有用旧测试结果替代本轮执行。
 
 额外实际检查：原始PDF/Prompt共7份字节不变；24个app业务文件与首次提交字节相同；21份Markdown本地链接有效；pip check通过；JavaScript和PowerShell语法、source中的Compose配置解析通过。实际运行根入口setup、start-local和初始化：调用者目录恢复、既有source/.env未覆盖、MongoDB数据未删除。迁移后重启8000服务，复核网页、静态文件和真实HTTP演示。Docker仍仅配置解析，不声称容器运行。
+
+## 后续最小修正：非匿名答卷的注册用户名
+
+修改限定为submissions的DTO/当前页批量用户查询、网页身份显示、相关测试和说明。保留respondentId，新增respondentUsername；匿名仍由anonymousAtSubmission控制，旧匿名不因新实名版本泄露。用户名只读取不冗余存储，未改Schema、规则引擎、聚合筛选或统计口径。
+
+新增11项：3个DTO白名单、4个API组合、2个双向跨版本、1个真实Mongo命令监听、1个缺失用户。现有浏览器测试增加实名显示用户名且不显示ID、历史匿名二者皆无的断言。批量测试证明当前页去重_id的一次users.find只取_id/username，与列表共用事务；匿名页/空页零查询。
+
+首次运行时Mongo未启动，实际4 passed / 7 setup errors（41.03秒，连接10061），保留错误证据。复用原目录启动Mongo后，新增测试11 passed（7.02秒）。随后从source执行`../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/evidence/respondent-username/full.xml`，实际 **113 passed / 0 failed / 0 errors / 0 skipped，37.82秒**；包含原有测试、全部新增测试及真实Chromium桌面/手机流程。node --check及pip check也通过。
+
+完整命令、输出、JUnit及环境错误记录见[本轮证据](evidence/respondent-username/README.md)。无破坏性兼容变更：原实名respondentId保留，新增username为查询时当前用户名；缺失用户返回null并回退ID。匿名输出不增加任何身份字段，无数据迁移。未将这些结果扩展宣称Docker/公网/容量验证。

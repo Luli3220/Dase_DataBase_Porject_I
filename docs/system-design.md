@@ -20,7 +20,7 @@ flowchart LR
 
 状态变更要求X-CSRF-Token，/api/me返回当前令牌。登录/注册同样拒绝显式外域Origin。管理端检查ownerId，公开链接只赋予填写入口；已登录用户填写别人的问卷是正常路径。身份、提交时间、匿名快照由服务器决定，多余字段拒绝。用户数据不作为任意Mongo filter。DOM textContent/转义防XSS。普通/流式请求均限制2MiB。验证错误不回显密码或原始输入；Mongo错误只记录异常类型，不返回堆栈。
 
-匿名答卷采用allowlist DTO：id/版本/匿名/时间/答案，只有非匿名才增加respondentId；不输出用户名、requestId、digest或账号映射。统计没有用户关联查询。anonymousAtSubmission保留原提交承诺，V2实名不解除V1匿名。自由文本可由填写者主动透露身份，不提供绝对不可识别保证。
+匿名答卷采用allowlist DTO：id/版本/匿名/时间/答案，只有非匿名才增加respondentId和从users批量读取的respondentUsername；匿名不输出这两个身份字段，所有答卷均不输出requestId、digest或账号映射。用户名读取仅针对当前页非匿名用户，沿用列表snapshot事务，不改变存储结构。统计没有用户关联查询。anonymousAtSubmission保留原提交承诺，V2实名不解除V1匿名。自由文本可由填写者主动透露身份，不提供绝对不可识别保证。
 
 ## 版本与并发
 

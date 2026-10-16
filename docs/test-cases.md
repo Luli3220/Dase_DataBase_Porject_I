@@ -64,3 +64,16 @@ Q1单选必答yes/no，no→Q3；Q2多选必答python/java/cpp，1..3，包含py
 ## 复核步骤
 
 在项目根目录运行README命令；查看final.txt汇总和final.xml每个testcase。运行`scripts.http_demo`需要8000服务，脚本实际断言22个HTTP状态与关键统计/匿名内容，输出无密码JSON。浏览器测试保存实际页面截图，不使用生成/合成截图。暂未执行的Docker启动、容量压测、HTTPS部署明确见test-report.md，不属于上述PASS范围。
+
+## 后续：非匿名填写者用户名修正
+
+新增测试位于source/tests/unit/test_owner_submission.py和source/tests/integration/test_respondent_usernames.py，浏览器原全流程补充用户名显示断言。执行结果见[本轮证据](evidence/respondent-username/README.md)。
+
+|测试|步骤/输入|预期|
+|---|---|---|
+|test_owner_dto_identity_allowlist（3例）|将用户名显式传给DTO，分别非匿名、缺失账号、匿名且内部含身份|非匿名新增username；缺失为null；匿名彻底省略两个身份字段和内部字段|
+|test_api_owner_username_and_anonymity（4例）|注册Reader_Actual并提交；组合匿名/非匿名及两种统计口径查询答卷|非匿名返回归一化reader_actual及原ID；匿名不返回二者；数据库不冗余用户名|
+|test_api_identity_follows_submission_snapshot_across_versions（2例）|分别匿名→非匿名、非匿名→匿名，发布前后查询V1/V2原始/有效记录|按各次提交快照决定身份；V1历史不被新设置改变；跨版本latest_only和统计保持原语义|
+|test_service_batches_only_current_page_non_anonymous_users|真实Mongo命令监听；3用户5次提交，offset1/limit3，再查空页/匿名页|当前页仅一次users.find，$in去重且排除页外用户，仅投影_id/username，事务相同；空/匿名页0次|
+|test_api_missing_user_keeps_non_anonymous_id_and_returns_null_username|测试隔离库内删除关联用户后查询非匿名答卷|200，保留ID且username=null|
+|现有test_full_browser_flow新增断言|V2实名提交后打开答卷，再切V1匿名历史|V2显示注册用户名而非ID；V1仍不显示用户名或ID|

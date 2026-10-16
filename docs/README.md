@@ -31,6 +31,7 @@
 |[逐项结果](evidence/case-results.md)|原始102个测试实例及耗时|
 |[原始JUnit](evidence/final.xml)|首次完整验收记录|
 |[目录整理后回归](evidence/restructure/README.md)|迁移后的独立执行结果与截图|
+|[用户名修正验证](evidence/respondent-username/README.md)|非匿名用户名、批量查询、历史匿名及113项回归|
 |[需求追踪](requirements-traceability.md)|需求→模型→接口→测试|
 |[AI使用日志](ai-usage-log.md)|实际Prompt、生成/修改、问题和验证|
 |[交付清单](delivery-manifest.json)|打包文件及SHA256|

@@ -47,6 +47,8 @@ schemaVersion=文档格式；version/surveyVersion=问卷内容，不混用。�
 
 匿名不等于免登录，内部 respondentId 用于跨版本去重，所有者输出使用 allowlist DTO，匿名时排除账号 ID、requestId、digest、用户名。anonymousAtSubmission 保证后续实名版本不解除历史匿名；自由文本可能由填写者自行透露身份。无导出/调试端点提供内部文档。
 
+非匿名答卷读取时由respondentId关联users._id，新增响应字段respondentUsername=users.username。该字段不落库，不新增集合、索引、schemaVersion或迁移，复用users的默认_id索引。list_owner只批量读取当前页非匿名用户的_id/username，并沿用原snapshot事务；匿名和空页不进行账号查询。DTO再次依据anonymousAtSubmission排除匿名身份，即使已传入用户名也不输出。关联用户不存在时，非匿名用户名为null，原respondentId保留以兼容旧客户端。用户名是读取时的当前值，不是提交时用户名快照；当前系统无改用户名入口。
+
 重复策略位于 surveys，首份成功答卷事务设置 hasSubmissions。每次新 requestId 追加，重试相同内容返回原 ID；同键不同内容409。historical_raw 展示指定版本全部记录；current_effective 在全卷选最新或全部，再按版本统计。
 
 参见 ADR 001 的一致性代价与第二阶段影响。初始化重复执行不删数据，测试仅销毁本次随机分配的 survey_test_ 数据库。
