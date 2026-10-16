@@ -1,4 +1,4 @@
-"""Run from project root: python -m scripts.init_db."""
+"""Run from source/: python -m scripts.init_db."""
 from app.core.config import Settings
 from app.db.mongo import client_for, initialize
 

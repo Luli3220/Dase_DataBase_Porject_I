@@ -1,6 +1,7 @@
 """Build reproducible evidence indices from actual JUnit output; never fabricate passes."""
 import json
 import platform
+import subprocess
 from datetime import datetime, timezone, timedelta
 from importlib.metadata import version
 from pathlib import Path
@@ -8,7 +9,7 @@ from xml.etree import ElementTree as ET
 from app.core.config import Settings
 from app.db.mongo import client_for
 
-ROOT=Path(__file__).resolve().parents[1]
+ROOT=Path(__file__).resolve().parents[2]
 
 
 def main():
@@ -26,10 +27,11 @@ def main():
     cfg=Settings()
     with client_for(cfg.mongo_uri) as client:
         mongo=client.server_info()['version']
+    git = subprocess.run(['git','rev-parse','HEAD'],cwd=ROOT,capture_output=True,text=True)
     meta={'recordedAt':datetime.now(timezone(timedelta(hours=8))).isoformat(),'timezone':'Asia/Shanghai','python':platform.python_version(),
-          'platform':platform.platform(),'mongoVersion':mongo,'git':'No Git repository in supplied workspace',
+          'platform':platform.platform(),'mongoVersion':mongo,'git':git.stdout.strip() if git.returncode == 0 else 'No Git repository in supplied workspace',
           'packages':{n:version(n) for n in ['fastapi','starlette','pymongo','pydantic','pytest','playwright','argon2-cffi','uvicorn']},
-          'counts':counts,'tests':len(cases),'command':'.venv/Scripts/python.exe -m pytest -q --junitxml=docs/evidence/final.xml'}
+          'counts':counts,'tests':len(cases),'workingDirectory':'source','command':'../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/evidence/final.xml'}
     (folder/'environment.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     from app.main import app
     (ROOT/'docs'/'openapi.json').write_text(json.dumps(app.openapi(),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

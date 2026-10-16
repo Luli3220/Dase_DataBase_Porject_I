@@ -1,6 +1,6 @@
 # 规则与校验规范
 
-实现入口：`app/rules/engine.py`，纯函数，不依赖 HTTP/Mongo。`validate_question_config` 静态检查，`validate_answer` 动态规范化，`evaluate_condition` 白名单解释，`next_question` 取首条命中，`trace_path_and_validate_submission` 重算有效路径。
+实现入口：`source/app/rules/engine.py`，纯函数，不依赖 HTTP/Mongo。`validate_question_config` 静态检查，`validate_answer` 动态规范化，`evaluate_condition` 白名单解释，`next_question` 取首条命中，`trace_path_and_validate_submission` 重算有效路径。
 
 四题型 single_choice/multiple_choice/text/number。选择题只保存稳定选项 ID，不保存显示标签。文本 trim 后按 Unicode 码点长度检查和保存。数字只接受有限 JSON number，拒绝 bool、字符串、NaN/Infinity；绝对值上限 2^53-1 保证 BSON/浏览器一致。数字支持 min/max/integerOnly。手机号课程整数示例可用数字题；真实号码建议文本保留前导零和国际区号。
 

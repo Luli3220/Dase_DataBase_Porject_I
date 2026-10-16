@@ -1,6 +1,6 @@
 # MongoDB 数据库设计
 
-所有持久化业务数据只使用 MongoDB；没有关系数据库或现成问卷系统。初始化定义在 `app/db/mongo.py::SCHEMAS/initialize`，严格 `$jsonSchema` 验证必填字段、主要 BSON 类型和数组上限。更细的题型约束在 Pydantic/发布验证器中维护，避免两份规则分歧。数据库直连管理员可绕开服务修改 sealed 数据，因此应用数据库账号只供服务使用；不可变性由应用写入口和 CAS 保证，并非 Mongo JSON Schema 的跨更新比较功能。
+所有持久化业务数据只使用 MongoDB；没有关系数据库或现成问卷系统。初始化定义在 `source/app/db/mongo.py::SCHEMAS/initialize`，严格 `$jsonSchema` 验证必填字段、主要 BSON 类型和数组上限。更细的题型约束在 Pydantic/发布验证器中维护，避免两份规则分歧。数据库直连管理员可绕开服务修改 sealed 数据，因此应用数据库账号只供服务使用；不可变性由应用写入口和 CAS 保证，并非 Mongo JSON Schema 的跨更新比较功能。
 
 ## 四集合与类型
 
@@ -12,9 +12,9 @@
 |survey_versions|_id/surveyId:ObjectId; version:int; schemaVersion:int; revision:int; state:draft/sealed; settings:{anonymous:bool}; questions:array; createdAt:date; sealedAt:date或null|不可变内容快照，草稿独立指针|
 |submissions|_id/surveyId/respondentId:ObjectId; surveyVersion:int; anonymousAtSubmission:bool; requestId:string(UUID); payloadDigest:string(SHA256); answers:array; submittedAt:date; schemaVersion:int|每次逻辑成功提交追加一份记录|
 
-questions 内嵌 `{id,type,title,required,options:[{id,label}],validation:{},routingRules:[]}`；answers 内嵌 `{questionId,value}`。完整可执行固定样例在 `tests/fixtures.py`，真实 BSON 插入/读取在 `tests/integration/test_core.py`。HTTP 统一将 ObjectId 转字符串、UTC Date 转 ISO8601；反向引用统一 `oid()` 转换。禁止将原始字符串 ID 写成 BSON 关联字段。
+questions 内嵌 `{id,type,title,required,options:[{id,label}],validation:{},routingRules:[]}`；answers 内嵌 `{questionId,value}`。完整可执行固定样例在 `source/tests/fixtures.py`，真实 BSON 插入/读取在 `source/tests/integration/test_core.py`。HTTP 统一将 ObjectId 转字符串、UTC Date 转 ISO8601；反向引用统一 `oid()` 转换。禁止将原始字符串 ID 写成 BSON 关联字段。
 
-四集合实际Pydantic文档模型为 `app/models/documents.py` 的UserDocument/SurveyDocument/VersionDocument/SubmissionDocument，`to_bson()`保留ObjectId与UTC datetime而非JSON字符串。请求模型位于domain.py，与数据库格式分离。
+四集合实际Pydantic文档模型为 `source/app/models/documents.py` 的UserDocument/SurveyDocument/VersionDocument/SubmissionDocument，`to_bson()`保留ObjectId与UTC datetime而非JSON字符串。请求模型位于domain.py，与数据库格式分离。
 
 ```mermaid
 erDiagram

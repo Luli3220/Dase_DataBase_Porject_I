@@ -1,0 +1,14 @@
+{
+  "originalRequirementsAndPromptsUnchanged": [
+    "requirements/project1.pdf",
+    "prompts/00-总控Prompt.md",
+    "prompts/01-数据库与规则引擎.md",
+    "prompts/02-后端API与网页.md",
+    "prompts/03-测试文档与验收.md",
+    "prompts/完整实施Prompt.md",
+    "prompts/original-specification-readme.md"
+  ],
+  "businessFilesUnchanged": 24,
+  "markdownFilesChecked": 21,
+  "missingLinks": []
+}

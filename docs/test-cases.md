@@ -9,7 +9,7 @@
 |ID|目标/前提/步骤|输入|预期输出|实际/结果/证据|
 |---|---|---|---|---|
 |C01|创建：A注册并登录，POST /api/surveys，读草稿|title=四题样例，anonymous=true，latest_only|201；status=draft，draftVersion=1，publishedVersion=null，V1 revision=0|PASS；test_api_chain_versions_anonymity + test_version_cas_and_recovery；final.xml|
-|C02|添加题目：创建草稿，PUT四题配置；浏览器逐个添加并编辑|tests/fixtures.py四类题；expectedRevision=0|200，revision=1，嵌套配置BSON读取一致；UI可配全部字段|PASS；test_schema_indexes_bson、test_full_browser_flow；editor.png|
+|C02|添加题目：创建草稿，PUT四题配置；浏览器逐个添加并编辑|source/tests/fixtures.py四类题；expectedRevision=0|200，revision=1，嵌套配置BSON读取一致；UI可配全部字段|PASS；test_schema_indexes_bson、test_full_browser_flow；editor.png|
 |C03|跳转：依次执行固定R01..R15|下表给出的答案/非法配置|有效路径/优先级/提前结束符合规格|15/15 PASS；test_fixed_paths/invalid/bad_config；phase-a.xml/final.xml|
 |C04|校验：构造合法/边界/错误答案，服务端重算|单/多选、Unicode、整数/分数、0、bool、NaN/Inf、极大整数|合法保存；非法拒绝DomainError/HTTP422；不丢有效0|PASS；test_rules.py及test_invalid_statuses_and_serialization|
 |C05|提交：B通过公开URL填写；相同UUID重试；再次新UUID；并发请求|Q1=no,Q3=8；Q1=yes,Q2=[python,java]|201；同UUID同ID；新UUID新文档；非法路径422；无覆盖|PASS；test_multiple_concurrency_and_deadlines、test_idempotency_stats_versions_privacy、真实22步HTTP|

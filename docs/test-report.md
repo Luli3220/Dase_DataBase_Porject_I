@@ -43,3 +43,11 @@ PowerShell安装/启动/测试脚本也实际通过System.Management.Automation.
 editor.png：四类题及规则编辑；published.png：真实发布结果与链接；statistics.png：版本、口径、题目、有效/原始统计及匿名答卷；mobile.png：390px表单；login.png：真实登录页。截图包含测试随机账号，非真实用户账号。已经人工式视觉检查（由AI查看实际图像），不声称人类审查。
 
 未验证：Docker镜像构建/容器运行、MongoDB7/8.0相容性运行（本机实测8.3.11）、公网HTTPS部署、多节点故障转移、负载容量、其他浏览器引擎。单节点副本集用于课程环境，不代表高可用生产系统。课程要求的六项、版本/匿名/重复/并发主要边界均有真实证据。
+
+## 后续目录整理回归
+
+用户要求将Prompt、源码等分目录，并做好索引。当前实现、依赖、Docker和测试均在source；原始PDF和规格分别在requirements/prompts；设计/证据保留docs。前述阶段命令与路径是初次开发时的真实历史，不改写。当前命令见[source运行手册](../source/README.md)。
+
+迁移后在source执行：`../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/evidence/restructure/pytest.xml`，并设置`TEST_EVIDENCE_DIR=../docs/evidence/restructure`。实际 **102 passed / 0 failed / 0 skipped，31.82秒**，证据独立保存在[restructure/](evidence/restructure/README.md)，没有用旧测试结果替代本轮执行。
+
+额外实际检查：原始PDF/Prompt共7份字节不变；24个app业务文件与首次提交字节相同；21份Markdown本地链接有效；pip check通过；JavaScript和PowerShell语法、source中的Compose配置解析通过。实际运行根入口setup、start-local和初始化：调用者目录恢复、既有source/.env未覆盖、MongoDB数据未删除。迁移后重启8000服务，复核网页、静态文件和真实HTTP演示。Docker仍仅配置解析，不声称容器运行。

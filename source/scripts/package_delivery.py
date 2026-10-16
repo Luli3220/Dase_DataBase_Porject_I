@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
-ROOT=Path(__file__).resolve().parents[1]
+ROOT=Path(__file__).resolve().parents[2]
 EXCLUDED={'.venv','.local','.git','.pytest_cache','__pycache__','delivery','test-results'}
 
 

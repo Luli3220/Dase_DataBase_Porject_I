@@ -11,3 +11,5 @@
 环境初查：db conda 环境为 Python 3.10.21，缺 FastAPI，conda 启动器报错；base Python 3.11.5 可用，因此采用项目内 .venv（Python 3.11）满足规格并保留 db 原环境。为加快起步曾借用system-site-packages，最终已关闭并按requirements-lock安装完全隔离依赖。MongoDB 8.3.11 已安装；Docker CLI 存在但 daemon 未运行。采用独立本地 Mongo 端口 27018，数据目录在项目 .local 下，不触碰既有数据库。
 
 目录：app/{core,db,models,rules,services,static,templates}；scripts；tests/{unit,integration,web}；docs/evidence。启动入口 python -m uvicorn app.main:app。详细执行结果随阶段更新。
+
+后续目录整理：上述原始实现目录已统一移入source，课程PDF在requirements，开发规格在prompts；docs保持文档/证据。当前路径与执行约定见根README和docs/repository-layout.md，原始阶段执行记录保留。

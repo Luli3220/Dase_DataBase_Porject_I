@@ -1,6 +1,7 @@
 param([string]$MongoExe = 'F:\MongoDB\bin\mongod.exe', [int]$Port = 27018)
 $ErrorActionPreference = 'Stop'
-$ProjectRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$SourceRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$ProjectRoot = Split-Path -Parent $SourceRoot
 $DataPath = Join-Path $ProjectRoot '.local\mongo'
 New-Item -ItemType Directory -Force -Path $DataPath | Out-Null
 $LogPath = Join-Path $ProjectRoot '.local\mongod.log'

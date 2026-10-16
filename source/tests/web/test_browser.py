@@ -12,7 +12,7 @@ from playwright.sync_api import sync_playwright, expect
 
 pytestmark = pytest.mark.web
 ROOT = Path(__file__).resolve().parents[2]
-EVIDENCE = ROOT / 'docs' / 'evidence'
+EVIDENCE = Path(os.getenv('TEST_EVIDENCE_DIR', str(ROOT.parent / 'docs' / 'evidence'))).resolve()
 
 
 @pytest.fixture

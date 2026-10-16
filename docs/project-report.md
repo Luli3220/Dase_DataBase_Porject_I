@@ -45,3 +45,9 @@ AI工具为本会话Codex，使用原始课程材料和四份Prompt作为输入�
 ## 第二阶段保持兼容的扩展入口
 
 新增题型：models/domain.py、models/documents.py、rules/engine.py、static/app.js控件与services/statistics.py。新增条件：白名单、静态operand校验、evaluate_condition及前端规则菜单。新增统计：StatisticsService，保持mode/version和匿名DTO。文档结构变更：schemaVersion、新迁移脚本、旧数据读取兼容，不把问卷version当迁移版本。每次需求变更补ADR、需求追踪和AI日志，执行现有102项及新增测试，禁止丢弃第一阶段重写。
+
+## 交付目录整理
+
+首次提交80ac7d3之后，按用户要求重组目录：requirements保存原始任务，prompts保存原文规格，source集中实现/测试/运行配置，docs保留交付文档与证据。根及各目录README提供索引；当前运行手册为source/README.md，上文原实现相对路径以source为根。原始材料和业务实现字节未变，仅调整路径、脚本定位和文档。
+
+迁移后完整回归102项通过（31.82秒），并实际验证安装入口、Mongo初始化、服务启动和文档链接，单独保存docs/evidence/restructure。初始31.36秒的验收记录保持原样。目录映射见[目录调整记录](repository-layout.md)，当前索引见[仓库README](../README.md)。
