@@ -1,0 +1,118 @@
+{
+  "baseUrl": "http://127.0.0.1:8000",
+  "checks": 22,
+  "result": "PASS",
+  "publicUrl": "http://127.0.0.1:8000/survey/oV5ldOXFhBY9VNmzEXSeIwmP",
+  "steps": [
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/surveys",
+      "status": 201
+    },
+    {
+      "method": "PUT",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/draft",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/publish",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/surveys/oV5ldOXFhBY9VNmzEXSeIwmP",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/surveys/oV5ldOXFhBY9VNmzEXSeIwmP/submissions",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/surveys/oV5ldOXFhBY9VNmzEXSeIwmP/submissions",
+      "status": 201
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/surveys/oV5ldOXFhBY9VNmzEXSeIwmP/submissions",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/statistics",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/submissions",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/statistics",
+      "status": 403
+    },
+    {
+      "method": "POST",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/draft-from-published",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/public/surveys/oV5ldOXFhBY9VNmzEXSeIwmP",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/publish",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/surveys/oV5ldOXFhBY9VNmzEXSeIwmP/submissions",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/statistics?version=1&mode=historical_raw",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/surveys/6ad194b2ac5dc17e811cf403/close",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/public/surveys/oV5ldOXFhBY9VNmzEXSeIwmP/submissions",
+      "status": 409
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "status": 200
+    }
+  ]
+}

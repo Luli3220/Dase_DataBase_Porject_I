@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:8.0
+    command: ["mongod", "--port", "27018", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27018:27018"
+    volumes:
+      - survey_mongo:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --port 27018 --quiet --eval
+          "try { if (rs.status().myState === 1) quit(0); quit(1); }
+          catch(e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27018'}]}); quit(1); }"
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+  app:
+    profiles: ["full"]
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      MONGO_URI: mongodb://mongo:27018/?replicaSet=rs0&directConnection=true
+      MONGO_DB: ${MONGO_DB:-survey_dev}
+      SESSION_SECRET: ${SESSION_SECRET:?Generate a random secret in .env first}
+      APP_BASE_URL: ${APP_BASE_URL:-http://127.0.0.1:8000}
+      ENVIRONMENT: development
+    depends_on:
+      mongo:
+        condition: service_healthy
+volumes:
+  survey_mongo:
