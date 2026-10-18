@@ -1,39 +1,37 @@
-# 项目文档索引
+# 提交文档与阅读索引
 
-## 运行与交付
+本目录是“正式报告 + 技术附件 + 测试证据”，不是要求逐一阅读的多份报告。建议先看正式PDF，再按需要查下表。
 
-|文档|用途|
-|---|---|
-|[运行手册](../source/README.md)|安装、环境配置、MongoDB、应用启动、测试与演示|
-|[完成报告](project-report.md)|项目目标、实现、测试、限制和第二阶段扩展|
-|[实施计划](implementation-plan.md)|A/B/C阶段顺序及验收记录|
-|[目录调整记录](repository-layout.md)|当前目录、迁移映射及路径兼容说明|
-|[GitHub提交说明](repository-submission.md)|仓库提交授权及历史证据说明|
+## 课程提交入口
 
-## 设计与接口
+|阅读顺序|入口|解决什么问题|
+|---|---|---|
+|1|[正式实验报告](report/DataBase_Project_1.pdf)|作者完成的7页报告：目标、方案比较、数据库、跳转/校验、测试、AI、问题与解决、阶段二展望；原样收录，未改PDF|
+|2|[课程要求逐项核对](requirements-traceability.md)|原始任务书页码→报告章节→实现/证据；含本次审阅的改进建议|
+|3|[安装与运行](../source/README.md)|依赖、配置、MongoDB副本集、启动、测试、演示|
+|4|[数据库设计](database-design.md) / [系统设计](system-design.md)|完整BSON字段、索引、嵌入/引用、身份和并发；是PDF的技术附件|
+|5|[API说明](api.md) / [规则说明](rule-specification.md)|实际接口、错误码、版本/匿名行为、校验与跳转语法|
+|6|[测试用例](test-cases.md) / [测试报告](test-report.md)|课程六项测试的步骤、输入、输出及真实结果|
+|7|[AI使用说明与索引](ai-usage-log.md)|使用工具、Prompt、得到的代码、修改、作者/AI分工及验证|
 
-|文档|用途|
-|---|---|
-|[系统设计](system-design.md)|分层、数据流、身份、隐私与并发|
-|[数据库设计](database-design.md)|四集合BSON、索引、版本指针、存储取舍|
-|[规则说明](rule-specification.md)|题型校验、运算符、优先级与有效路径|
-|[API说明](api.md)|权限、请求/响应、状态码与统计口径|
-|[OpenAPI快照](openapi.json)|机器可读接口定义|
-|[一致性决策](adr/001-consistency.md)|副本集、事务及发布中断恢复|
-|[冲突与澄清](adr/002-clarifications.md)|原始要求、规格歧义和采用的解决方案|
+AI前期讨论入口：[作者提供的ChatGPT分享记录](https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816)。仓库Prompt、实现及执行证据的对应关系见AI使用说明。本次工具未能读取分享页全文，不把链接收录等同于内容核验。
 
-## 测试与过程证据
+## 测试证据只看一个入口
 
-|文档|用途|
-|---|---|
-|[测试用例](test-cases.md)|步骤、输入、预期、实际结果|
-|[测试报告](test-report.md)|真实命令、环境、结果、修复及未验证项|
-|[逐项结果](evidence/case-results.md)|原始102个测试实例及耗时|
-|[原始JUnit](evidence/final.xml)|首次完整验收记录|
-|[目录整理后回归](evidence/restructure/README.md)|迁移后的独立执行结果与截图|
-|[用户名修正验证](evidence/respondent-username/README.md)|非匿名用户名、批量查询、历史匿名及113项回归|
-|[需求追踪](requirements-traceability.md)|需求→模型→接口→测试|
-|[AI使用日志](ai-usage-log.md)|实际Prompt、生成/修改、问题和验证|
-|[交付清单](delivery-manifest.json)|打包文件及SHA256|
+先看 [evidence/README.md](evidence/README.md)。当前代码最近一次完整功能验收是 **113 passed / 0 failed / 0 skipped（37.82秒）**，对应[用户名修正后的记录](evidence/respondent-username/README.md)。原根目录final.xml和restructure目录的102项属于较早版本，继续保留以证明阶段过程。
 
-原始任务书和开发Prompt分别见 [requirements/](../requirements/) 与 [prompts/](../prompts/README.md)。历史测试命令按执行时目录保留；当前可运行命令统一从source/README.md查找。
+2026-10-18本次工作是报告/文档核对：已逐页阅读两份PDF、解析历史JUnit，并执行测试收集（113项）；没有重新执行数据库/浏览器功能测试，不将旧结果表述为本次重跑结果。
+
+## 为什么文件多，哪些可以略过
+
+|类别|位置|是否需要逐份阅读|
+|---|---|---|
+|正式报告与技术附件|本页上方7个入口|提交/复核的主要内容|
+|机器可读附件|[openapi.json](openapi.json)、[delivery-manifest.json](delivery-manifest.json)|按需查接口或文件校验，不是额外报告|
+|设计决策|[事务/发布恢复](adr/001-consistency.md)、[歧义澄清](adr/002-clarifications.md)|需要追问设计原因时再读|
+|过程档案|[实施计划](archive/implementation-plan.md)、[目录整理](archive/repository-layout.md)、[GitHub提交](archive/repository-submission.md)、[旧自动完成记录](archive/project-report.md)|历史材料，非当前正式报告，不必按顺序通读|
+|原始执行证据|evidence/中的txt/xml/json/log/png|用于复核结论，不是几十份独立文档|
+
+整理前盘点为63个文件，其中46个是执行日志、截图或证据索引，约1.69MiB。存在内容主题重叠和多轮截图，但主要是“摘要—详细规范—原始证据”的分层；本次将4份过程文档归档、统一最新版本入口，没有删除PDF已引用的路径或失败记录。
+
+原始课程要求与开发规格分别见 [requirements/](../requirements/README.md) 和 [prompts/](../prompts/README.md)。正式报告、代码和附件应一并提交；若只交PDF，其API、配置及详细测试步骤需另补附件。

@@ -73,7 +73,7 @@ setup脚本会自动生成随机密钥且不覆盖已有.env。`requirements-loc
 
 app/core：配置/会话/CSRF/错误/请求限制；app/models：请求模型和BSON映射；app/db：schema/索引/事务；app/rules：纯函数规则；app/services：认证/版本/提交/统计；app/api：REST；app/static与templates：原生网页；scripts：安装、启动、初始化、测试与演示；tests：unit/integration/web。
 
-[系统设计](../docs/system-design.md) · [数据库设计](../docs/database-design.md) · [规则说明](../docs/rule-specification.md) · [API文档](../docs/api.md) · [测试用例](../docs/test-cases.md) · [需求追踪](../docs/requirements-traceability.md) · [AI使用日志](../docs/ai-usage-log.md) · [完成报告](../docs/project-report.md)。
+[系统设计](../docs/system-design.md) · [数据库设计](../docs/database-design.md) · [规则说明](../docs/rule-specification.md) · [API文档](../docs/api.md) · [测试用例](../docs/test-cases.md) · [需求追踪](../docs/requirements-traceability.md) · [AI使用日志](../docs/ai-usage-log.md) · [完成报告](../docs/report/DataBase_Project_1.pdf)。
 
 设计边界：匿名只隐藏账号身份，回答可能自带身份线索；题目/选项语义根本变化须新建ID；不跨版本合并统计；只允许向后跳或结束；关闭不可重开。没有作业未要求的文件题/邀请邮件。单节点副本集无高可用，未进行容量压测或公网HTTPS部署。
 

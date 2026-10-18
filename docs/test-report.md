@@ -1,6 +1,6 @@
 # 实际测试报告
 
-执行日期：2026-10-16，Asia/Shanghai。最终环境记录时间11:20:13+08:00，环境自动证据[evidence/environment.json](evidence/environment.json)。工作区没有Git仓库，故无commit号；没有伪造提交。
+首轮执行日期：2026-10-16，Asia/Shanghai；首轮环境记录时间11:20:13+08:00，见[evidence/environment.json](evidence/environment.json)，该时间点尚未初始化Git。当前最近一次完整功能验收是用户名修正后的113项通过（37.82秒），见文末和[证据总索引](evidence/README.md)，不要把早期文件名final误当作最新版本。2026-10-18只审核PDF/源码/原记录并收集当前113项测试，未重跑MongoDB/API/浏览器测试。
 
 ## 环境
 
@@ -23,7 +23,7 @@ Windows（platform报告Windows-10-10.0.26200-SP0）；Python3.11.5；MongoDB8.3
 
 PowerShell安装/启动/测试脚本也实际通过System.Management.Automation.Language.Parser语法解析。文档与源码的交付包由scripts/package_delivery.py生成，压缩包逐文件SHA256与manifest核对，排除.env、.venv、.local及缓存。
 
-最终102项组成：69纯规则单元实例、31真实Mongo/API/并发实例、2真实浏览器实例。早期阶段数量少，是阶段后新增了极大整数、会话重放、分块请求等覆盖，不是删除旧测试。每例JUnit详见[evidence/case-results.md](evidence/case-results.md)。
+首轮最终102项组成：69纯规则单元实例、31真实Mongo/API/并发实例、2真实浏览器实例。早期阶段数量少，是阶段后新增了极大整数、会话重放、分块请求等覆盖，不是删除旧测试。每例JUnit详见[evidence/case-results.md](evidence/case-results.md)。
 
 ## 实际问题与修复
 

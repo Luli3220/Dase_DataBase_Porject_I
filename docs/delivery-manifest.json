@@ -17,13 +17,33 @@
     },
     {
       "path": "docs/ai-usage-log.md",
-      "sha256": "c024e2f41707cb522cb1d001444c324414f80f99006e3f996856050e9a6f0a16",
-      "bytes": 8514
+      "sha256": "6e78a99f0db643eec970f98c7956e35dce2cdba7c912ae51f2b50b2eac43be21",
+      "bytes": 10291
     },
     {
       "path": "docs/api.md",
       "sha256": "ca4c3cac0fea1cb072db262f2304b7a7f713fdcf4763ab695ac939c5021eb471",
       "bytes": 7964
+    },
+    {
+      "path": "docs/archive/implementation-plan.md",
+      "sha256": "dc18dc7ba33203c2993ac31691da94ffcb80e46165ea4a33b69b074c6bce2cad",
+      "bytes": 1727
+    },
+    {
+      "path": "docs/archive/project-report.md",
+      "sha256": "f706be1d74478b4c0b9a21d48afd9cacf4cc356f81bfa1a896f5cc7bb19cc98d",
+      "bytes": 7535
+    },
+    {
+      "path": "docs/archive/repository-layout.md",
+      "sha256": "509ab4f05168ddc5b633dd63934ffcce9fa1acf118d2ebdad4bd5ea6a1265257",
+      "bytes": 1856
+    },
+    {
+      "path": "docs/archive/repository-submission.md",
+      "sha256": "7035764b6949fe7c67f32aa1bc8a8819f2acd2eaed34f89451ee675ad52c4e82",
+      "bytes": 1368
     },
     {
       "path": "docs/database-design.md",
@@ -49,6 +69,11 @@
       "path": "docs/evidence/case-results.md",
       "sha256": "cf7d3b05b17a20e48942da7cd1d6bd1c9e694079cf162a388cc6164d250c496a",
       "bytes": 9010
+    },
+    {
+      "path": "docs/evidence/document-review-2026-10-18.json",
+      "sha256": "9f32e773f7da9591fff56ec5eab06dcc550fd5df12e212b6883211cd062f93ef",
+      "bytes": 1526
     },
     {
       "path": "docs/evidence/editor.png",
@@ -114,6 +139,11 @@
       "path": "docs/evidence/published.png",
       "sha256": "e9c5771d5f2a611f9f44bdd25b916cc6f3cf4c48a81b9ebda57d3cd5d1167eec",
       "bytes": 72708
+    },
+    {
+      "path": "docs/evidence/README.md",
+      "sha256": "9414984176833b785c78776ed6417681227f87f090bfced09b6219ecf764fefc",
+      "bytes": 2355
     },
     {
       "path": "docs/evidence/regression.txt",
@@ -261,39 +291,24 @@
       "bytes": 122601
     },
     {
-      "path": "docs/implementation-plan.md",
-      "sha256": "dc18dc7ba33203c2993ac31691da94ffcb80e46165ea4a33b69b074c6bce2cad",
-      "bytes": 1727
-    },
-    {
       "path": "docs/openapi.json",
       "sha256": "4f54febf535aabd7ec69aa6f26e0222aef64446a790875a4f2994b64aa34e442",
       "bytes": 37442
     },
     {
-      "path": "docs/project-report.md",
-      "sha256": "16aa88944dffc7d6e1230eb013eeff0e55848eda89956c50d666e2a5d5ed583e",
-      "bytes": 7220
-    },
-    {
       "path": "docs/README.md",
-      "sha256": "1b0e6ccf6b8f632de878d83713dd2a1c60eb23463044361de994774270d4e598",
-      "bytes": 2171
+      "sha256": "8f3307547b743a0cb8df8d745278622be9532949d54374744944bb022378e5de",
+      "bytes": 3576
     },
     {
-      "path": "docs/repository-layout.md",
-      "sha256": "4045464bcd81663754768f4b92d6bf92d3e09df00e3b694b706749f8d9f5bd5a",
-      "bytes": 1853
-    },
-    {
-      "path": "docs/repository-submission.md",
-      "sha256": "7035764b6949fe7c67f32aa1bc8a8819f2acd2eaed34f89451ee675ad52c4e82",
-      "bytes": 1368
+      "path": "docs/report/DataBase_Project_1.pdf",
+      "sha256": "d929db9fb8312f2d92cb24222e24780acbfaf7f83faca466df0aaa4448c45736",
+      "bytes": 436271
     },
     {
       "path": "docs/requirements-traceability.md",
-      "sha256": "75a84c3413040cb72ca569a051f3c3bb408c55cb59db85439646cc6ea6351369",
-      "bytes": 3529
+      "sha256": "ac14d946b88bc0158c5c08db2914dd64e87a79e95020f58f9787d3db0fffcb89",
+      "bytes": 11355
     },
     {
       "path": "docs/rule-specification.md",
@@ -307,13 +322,13 @@
     },
     {
       "path": "docs/test-cases.md",
-      "sha256": "759ffc81217edc8dbe8bb32f2cfc19062cc7bd1556dbe65802382244a7e6072d",
-      "bytes": 9120
+      "sha256": "9c7a1b84117a69a50295fa4b0e28f9bdc8cf1bf383a676693eff720c4487e2cc",
+      "bytes": 9314
     },
     {
       "path": "docs/test-report.md",
-      "sha256": "d70c4b99b23b8f53d5be9c333fca46df353b1b2651997b092b8374e335b033f4",
-      "bytes": 7882
+      "sha256": "a83ffb8e5601b8cf10fb01231b8e2e616df0dc03e7df00e437ff6149d9bb7398",
+      "bytes": 8148
     },
     {
       "path": "prompts/00-总控Prompt.md",
@@ -352,8 +367,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "6f775902071cf902dcfa14a260ba258b3fe559b6d7b41c9edda9e26e81486b05",
-      "bytes": 3083
+      "sha256": "3a7161767a45d83cc6af83f87ceee8c1d77f5c06ebd4378cfc53ccebb6b81b66",
+      "bytes": 3352
     },
     {
       "path": "requirements/project1.pdf",
@@ -512,8 +527,8 @@
     },
     {
       "path": "source/README.md",
-      "sha256": "b5822a59c5d2a288f5d6744252abacceda02eb7b17c2af93367849f971fab182",
-      "bytes": 7328
+      "sha256": "daa7f97c90a7bed953cfa6c2d8a5bb46772870c42d9e08783040d74df71b8c56",
+      "bytes": 7340
     },
     {
       "path": "source/requirements-lock.txt",

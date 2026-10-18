@@ -1,6 +1,6 @@
 # 测试用例、步骤、输入、实际结果
 
-最终真实结果：102 PASS / 0 FAIL / 0 SKIP。所有参数化实例、耗时和原始JUnit名称见 [逐项结果](evidence/case-results.md)，原始报告 [final.xml](evidence/final.xml)。下表是业务级摘要，不把计划当作执行结果。执行源代码中的assert同时承担期望输出核对；PASS表示执行已达到这些断言。
+最近一次完整功能验收：113 PASS / 0 FAIL / 0 SKIP，见[用户名修正后的完整记录](evidence/respondent-username/README.md)与[full.xml](evidence/respondent-username/full.xml)。首轮102项的[逐项结果](evidence/case-results.md)及[final.xml](evidence/final.xml)继续作为历史证据；下表源于该轮业务用例，末节列出新增11项。执行源代码中的assert同时承担期望输出核对，不能把测试计划当作执行结果。2026-10-18只核对记录与收集数量，没有重跑完整功能测试。
 
 环境/命令见 [测试报告](test-report.md)。纯规则无数据库；集成测试每例新建随机survey_test_库，真实MongoDB；浏览器自动启动8001临时服务，用真实Chromium。
 

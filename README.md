@@ -26,6 +26,8 @@ Project1/
 │   └── docker-compose.yml    # Docker替代配置
 └── docs/
     ├── README.md             # 文档导航
+    ├── report/               # 作者完成的正式PDF报告
+    ├── archive/              # 旧完成记录与开发过程档案
     ├── adr/                  # 设计决策
     └── evidence/             # 真实测试结果与截图
 ```
@@ -46,10 +48,10 @@ cd source
 
 ## 验收入口
 
-- [项目完成报告](docs/project-report.md)
-- [测试报告](docs/test-report.md)与[逐项结果](docs/evidence/case-results.md)：原始验收102项全部通过；目录整理后的独立回归见测试报告。
+- [正式实验报告](docs/report/DataBase_Project_1.pdf)与[课程要求核对](docs/requirements-traceability.md)
+- [测试报告](docs/test-report.md)与[证据总索引](docs/evidence/README.md)：最近一次完整验收113项通过，早期102项记录作为历史保留。
 - [数据库设计](docs/database-design.md)、[API说明](docs/api.md)、[需求追踪](docs/requirements-traceability.md)
-- [AI使用日志](docs/ai-usage-log.md)与[目录调整记录](docs/repository-layout.md)
+- [AI使用说明与Prompt/产物索引](docs/ai-usage-log.md) · [ChatGPT前期讨论](https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816)
 
 业务数据只使用MongoDB。匿名保护、问卷内容版本、重复填写统计口径遵循既定规格。Docker容器运行、公网部署和容量压测未验证，详情见测试报告。
 

@@ -1,0 +1,41 @@
+{
+  "reviewDate": "2026-10-18",
+  "timezone": "Asia/Shanghai",
+  "baseCommit": "744a4d298e4e0ae779c8bee421aba6d7ae6f7ff3",
+  "requirementsPdfPages": 11,
+  "reportPdfPages": 7,
+  "reportSha256": "d929db9fb8312f2d92cb24222e24780acbfaf7f83faca466df0aaa4448c45736",
+  "reportOriginalUnmodified": true,
+  "reportLinksTotal": 17,
+  "reportGithubPathsChecked": [
+    "source/app/services/statistics.py",
+    "source/app/services/submissions.py",
+    "source/tests/integration/test_core.py",
+    "docs/evidence/respondent-username/statistics.png",
+    "source/tests",
+    "docs/test-report.md",
+    "docs/evidence/respondent-username/full.txt",
+    "docs/evidence/respondent-username/full.xml",
+    "docs/evidence/final-http.json",
+    "prompts",
+    "docs/ai-usage-log.md",
+    "docs/evidence/respondent-username/README.md",
+    "docs/evidence/respondent-username/README.md",
+    "docs/ai-usage-log.md"
+  ],
+  "chatShareUrl": "https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816",
+  "sharePageFullTextRetrieved": false,
+  "markdownFilesChecked": 29,
+  "missingLocalLinks": [],
+  "sourceFilesUnchangedExcludingReadme": 50,
+  "historicalFullTests": 113,
+  "historicalGroups": {
+    "integration": 39,
+    "unit": 72,
+    "web": 2
+  },
+  "functionalTestsRerun": false,
+  "currentTestsCollected": 113,
+  "collectionMatchedHistoricalTests": true,
+  "notes": "Read both PDFs; visually inspected all seven report pages. Current collection only, no fresh MongoDB/API/browser execution."
+}

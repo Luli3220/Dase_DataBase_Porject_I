@@ -1,30 +1,91 @@
-# 课程需求—模型—服务—接口—测试追踪
+# 课程要求与最终报告核对
 
-原始依据requirements/project1.pdf第7–11页“初始用户需求”，第4–7页数据库/AI/测试/交付要求；三份实施规格补充明确语义，没有删除原功能。
+核对日期：2026-10-18。原始依据为 [课程任务书](../requirements/project1.pdf)（11页），被核对材料为作者提供的 [正式实验报告](report/DataBase_Project_1.pdf)（7页）、当前源码及原始测试证据。以下“课程页码”与“报告页码”分别指这两份PDF，不能混用。
 
-|课程/规格需求|集合/字段|核心实现|API/网页|实际测试/证据|
-|---|---|---|---|---|
-|注册/登录/注册时间|users.username/passwordHash/createdAt|AuthService|auth API、register/login|test_auth_and_csrf、session_expiry、logout_revokes|
-|只看自己创建的问卷|surveys.ownerId|SurveyService.owned|GET surveys、dashboard|test_ownership 12实例|
-|创建/标题/说明|surveys+survey_versions|create事务|POST surveys、new/editor|C01/C02、full_browser_flow|
-|匿名且填写先登录|respondentId内部、anonymousAtSubmission|current_user+owner_submission|public API、统计/答卷|C05、idempotency_stats_versions_privacy|
-|发布链接|publicId/publishedVersion|publish/public|publish、/survey/publicId|C07、22步HTTP|
-|截止/关闭|status/deadlineAt|public/close/patch|PATCH/close、dashboard|multiple_concurrency_and_deadlines、submission_state_race|
-|单选选项/必答|questions.options/required|validate_answer|editor/radio|single_invalid、fixed_paths、browser|
-|多选数量限制/恰好2个|validation.min/maxSelections|静态/动态校验|editor/checkbox|multiselect_boundaries、R07/R15|
-|文本长度/查看全部内容|validation.min/maxLength、answers|Unicode规范化+分页|textarea/统计明细|text_unicode_and_boundary、分页测试|
-|数字范围/整数/均值|number validation/value|validate_answer、StatisticsService|数字控件、均值和回答明细|number_bounds/rejects、integer_and_negative、C06|
-|单选/多选/数字跳转|routingRules|静态检查/evaluate/next/trace|可视化规则/逐题填写|R01–R15、operators、browser|
-|按顺序、即时错误、提交|嵌入questions/answers|trace_path_and_validate_submission|fill、本地校验+服务端复核|C04/C05、browser非法-1|
-|每次填写保存/多人/多次|submissions独立文档|submit事务、幂等唯一索引|submissions API、新一轮按钮|concurrency、multiple_same_user|
-|按题/全卷自动统计|版本题目+answers|StatisticsService Mongo聚合|statistics API/页面|C06、分页单题一致测试|
-|MongoDB设计/只用Mongo|四集合、BSON、索引、schema|db.mongo/models.documents|init_db|schema_indexes_bson|
-|内容版本不可变|sealed/revision/指针|edit CAS/publish/derive|versions/draft/publish|recovery、concurrent_draft、API链路|
-|旧版409/历史解释|submission.surveyVersion|提交版本检查/版本过滤|public/submissions/statistics|API链路、browser V1→V2|
-|跨版本latest_only|survey.submissionPolicy|先sort/group再版本match|mode/version选择|V1有效0历史2验证|
-|匿名承诺不追溯解除|anonymousAtSubmission|allowlist DTO|owner列表/统计|V1匿名→V2实名验证|
-|六类测试输入输出|非业务文件|pytest+Playwright|文档/证据|test-cases、final.xml|
-|AI日志与项目报告|非业务文件|真实工具/提示引用|docs|ai-usage-log、project-report|
-|阶段二不推倒重做|schemaVersion与内容version分离|模块化规则/服务/模型|扩展现有入口|全套回归、ADR|
+## 结论与边界
 
-测试别名为源函数名省略test_前缀，精确名称及每个参数化实例在evidence/case-results.md。业务实现没有问卷特定ID/跳转硬编码；q1..q4仅位于固定测试fixture及演示样例，前端使用随机稳定ID。
+以“PDF + 仓库代码 + 技术附件”一并提交为前提，当前源码和已有执行记录覆盖第一阶段的初始功能与提交要求，未发现明确缺失的必需功能。报告的结构、MongoDB方案比较、跳转/校验、问题与解决、AI分工均有对应内容。最新功能验收的113项及分类/耗时与报告一致。
+
+需要完善的是报告和附件的表达与导航：报告第2页有重复段落；“为什么不用规范化关系表”在仓库中已说明，但PDF正文可以更明确；API、配置、详细测试步骤应以明确附件链接提交。若只提交7页PDF而不附仓库材料，则这些详细交付内容不够集中，不能据此判定单独PDF已包含全部提交项。
+
+本次没有改动业务代码，也没有重跑MongoDB/API/浏览器功能测试。采用逐页视觉阅读、源码核对、解析历史JUnit和当前测试收集；旧113项通过记录不冒充2026-10-18的新执行。第二阶段的未知新增要求尚未发布，不纳入第一阶段“已完成”的判定。
+
+## 按评分关注项核对（不预测教师评分）
+
+|关注项/课程分值|报告与仓库对应|结论|
+|---|---|---|
+|MongoDB设计35|报告第2–5页第3章，方案A/B/C、四集合、嵌入/引用、索引、事务、版本/匿名；[数据库设计](database-design.md)|覆盖；建议在PDF第3.3节补直接的关系表对比|
+|后端逻辑25|报告第1页需求、第4–6页规则/路径/提交/统计；source/app|覆盖；数据驱动规则与服务端复核可从代码核验|
+|测试10|报告第6页表6及结果，tests与[测试用例](test-cases.md)、[最新JUnit](evidence/respondent-username/full.xml)|覆盖课程六项；细步骤、输入/输出在附件，不只看摘要表|
+|文档15|正式PDF、运行手册、系统/数据库/API/规则附件、问题解决与展望|整体覆盖；本次统一索引与历史版本定位|
+|AI使用15|报告第6–7页第6章、Prompt目录、[AI使用说明](ai-usage-log.md)、具体修改与执行记录|覆盖工具/Prompt/产物/修改/分工；分享页已入索引但自动全文读取未成功|
+
+## 初始功能与实现/证据矩阵
+
+本表“覆盖”表示已找到对应实现和历史测试断言，不代表本次重新执行了该测试。测试函数名中的参数化实例计入113项。
+
+|课程要求/页码|正式报告对应|实现与已有证据|核对|
+|---|---|---|---|
+|注册、登录、用户名/密码/注册时间（7–8页）|第1页1.1；第2页表2；第6页身份测试|source/app/services/auth.py、users；test_auth_and_csrf|覆盖，密码为哈希，不是明文存储|
+|只能管理自己的问卷（8页）|第1页1.1；第6页表6|SurveyService.owned、GET /api/surveys；12个test_ownership实例|覆盖；分享链接不赋予管理权|
+|创建标题、说明、匿名设置（8页）|第1页1.1；第4页3.5|SurveyService.create、版本settings.anonymous；API及浏览器创建流程|覆盖|
+|列表、发布、公开URL（8页）|第1页1.1；第4页发布流程；第6页5.1|source/app/api/routes.py、dashboard/editor、publicId；API/browser流程|覆盖|
+|截止时间、关闭（8页）|第1页1.1；第6页版本/并发|SurveyService.patch/close/public；过期、关闭、状态竞态测试|覆盖，UTC服务器判定|
+|通过链接填写且先登录（8页）|第1页1.1；第4页3.5|current_user/CSRF、公开API；浏览器登录后返回原链接|覆盖|
+|单选选项与必答（8–9页）|第4页表4；第5页4.3|single_choice校验；R01/R06、single_invalid、browser|覆盖|
+|多选最少/最多/恰好数量（9页）|第4页表4及参数说明|minSelections/maxSelections；test_multiselect_boundaries中min=max=2|覆盖|
+|文本最小/最大长度（9–10页）|第4页表4；第5页4.3|text校验、trim/Unicode；test_text_unicode_and_boundary|覆盖|
+|数字范围及整数（10页）|第4页表4；第7页边界问题|number/min/max/integerOnly；bounds/rejects/integer测试|覆盖；可表达年龄与整型手机号示例，真实号码建议用文本|
+|单选、多选、数字条件跳转（10页）|第4–5页第4章、表5|source/app/rules/engine.py；eq/contains_any/all/数字比较；R01–R15及operators|覆盖，问卷ID/路径不写死|
+|顺序作答、跳转、非法提示（10–11页）|第5页图6及说明|服务器trace路径与网页逐题交互；跳过必答、路径外答案、分支修改测试|覆盖|
+|每次成功填写保存（11页）|第4页3.5|独立submissions、UUID幂等与追加写；重复提交测试|覆盖，重试不重复计数，真实新填写保留历史|
+|多人同时填写（11页）|第6页表6|ThreadPoolExecutor不同respondentId的服务层并发、唯一索引与事务|覆盖服务层并发；不是多浏览器容量测试|
+|匿名及同人多次填写（11页）|第4页3.5；第6–7页实名修正|anonymousAtSubmission、latest_only/multiple；原测试及11个新增实例|覆盖，历史匿名不随新版本解除|
+|单选每项计数和总答题数（11页）|第6页5.1|StatisticsService及answeredCount/options；统计断言|覆盖|
+|多选每项被选次数（11页）|第6页5.1|Mongo unwind/group；选项计数和可大于答题数的断言|覆盖|
+|查看文本/数字全部内容、数字均值（11页）|第6页5.1|values分页+mean；分页、空结果、均值测试|覆盖；通过offset/limit浏览全部，不只返回首批|
+|全卷及单题统计（11页）|第1页1.1；第6页5.1|整卷/单题API及前端选择；单题与全卷一致断言|覆盖|
+
+## 技术约束和提交内容
+
+|课程要求/页码|具体交付位置|核对|
+|---|---|---|
+|所有业务数据MongoDB、禁止关系数据库/现成问卷框架（3–4页）|source/app/db/mongo.py、models/documents.py、requirements-lock.txt|代码和依赖路径符合；文件系统保存的是代码/报告/测试证据，不是替代业务数据库|
+|非单集合、解释设计和Mongo适用性（4页）|报告第3章，database-design.md|四集合/嵌入与引用/有界数组/索引；未机械拆表或硬编码问卷|
+|为什么不按关系数据库结构设计（4页）|database-design.md已明确说明|仓库覆盖；PDF建议补下面的短段|
+|AI工具、Prompt、结果、是否改、改什么（4–5页）|报告第6章、prompts/、ai-usage-log.md|有实际文件和修改证据；本次强化映射索引|
+|作者设计/修改与AI工作分工（5页）|报告第6–7页、ai-usage-log.md|作者报告陈述需求/方案选择和修正要求，Agent实施；不虚构本人手改代码|
+|创建/题目/跳转/校验/提交/统计六项测试（5页）|test-cases.md的C01–C06、source/tests|六项均有步骤、输入、预期、实际结果和证据|
+|后端源码、Schema、配置且可运行（6页）|source/app、db/mongo.py、source/.env.example、source/README.md|交付齐全；本次未做新环境启动复验|
+|系统、数据库、API、关键逻辑说明（6页）|system-design.md、database-design.md、api.md、rule-specification.md|均有，不要求全部挤入PDF正文|
+|完整报告：目标、设计、AI、测试、问题及解决（6–7页）|正式报告第1–8章|覆盖；第7章明确写问题与处理方式|
+|第二阶段基于原项目扩展，不推倒重做（2–3页）|报告1.3/第8章、版本/Schema分离和Git历史|具有扩展基础；尚不能宣称完成未知第二阶段需求|
+
+## 报告建议：小幅完善即可
+
+|编号|位置|发现/建议|性质|
+|---|---|---|---|
+|R1|报告第2页3.1开头及图3下方|“数据库结构需要根据实际业务中对数据的使用方式进行设计……具体见表1”一段重复。保留一次，删除图3下方的重复段|版面/文字冗余，不是功能缺失|
+|R2|报告第3页3.3|已说明Mongo适用性，但没有直接展开规范化关系表与本业务的对照。补一小段即可；仓库已有这项说明|提高对课程硬性说明项的可见性|
+|R3|提交导航|PDF已链接测试/代码/AI，API说明、完整BSON、启动配置、具体测试输入输出应集中列出附件链接|PDF+仓库整体可满足；只交PDF时尤其需要补|
+|R4|报告第6页表6并发场景|更精确写为“6次同一逻辑请求并发重试，另以4个不同填写者标识并发调用提交服务”。现有测试直接调用服务，不是4个登录浏览器同时操作|证据粒度澄清，避免误读为负载压测|
+|R5|报告第6–7页AI段落|已正确区分作者提出方案/修正要求与Agent实现。将“候选模型风险”与“实际发生的错误”分开列，避免把方案讨论写成已发生的数据故障|真实性/可追溯性改进，AI索引本次已按此整理|
+
+报告第2页表2是“关键字段摘录”，因此未列全anonymousAtSubmission/writeRevision等字段不构成错误；如需强化匿名与并发说明，可补这两个字段或明确指向完整数据库附件。PDF视觉阅读正常，但程序提取中文存在字体映射乱码；需要可复制/检索时可另检查导出字体映射，不应把文本提取乱码当作报告视觉缺字。
+
+可直接补入报告3.3节的文字：
+
+> 若按规范化关系表组织问卷、题目、选项与规则，通常需要通过关联查询重新组装完整配置，并额外维护历史版本的对应关系。本项目的主要访问单位是完整问卷版本，因此采用MongoDB文档嵌入配置，再以独立集合保存版本与答卷，更贴合当前读取和冻结快照的需要。该选择同时遵循课程的数据库约束，并不意味着关系数据库不能实现同类系统。
+
+建议报告附录/提交说明集中列出：[运行配置](../source/README.md)、[BSON与索引](database-design.md)、[API](api.md)、[规则](rule-specification.md)、[测试步骤和输入输出](test-cases.md)、[真实结果](test-report.md)、[AI Prompt与修改索引](ai-usage-log.md)。正式PDF保持作者提供的原件，本次未直接修改PDF。
+
+## 本次核验实际做了什么
+
+- 课程11页全部提取阅读；报告7页逐页渲染并视觉核对。
+- 提取报告17个超链接，确认其中GitHub仓库文件/目录链接指向本地对应路径；ChatGPT链接与作者本次提供的网址一致。页面全文读取未成功，不据此判断该链接失效。
+- 解析历史JUnit：首轮102、目录整理102、用户名修正113，均无failure/error/skip；最新分类72单元/39集成/2浏览器，full.txt耗时37.82秒，与报告吻合。
+- 核对22项独立HTTP记录为PASS，不将它们加到113项pytest数量中。
+- 当前执行pytest --collect-only：113 tests collected（0.72秒）；这仅是测试收集，不是113项重新通过。
+- 源码、数据库结构、统计口径和规则引擎不改动；本次仅整理报告索引、文档版本和AI说明。
+
+原件SHA256、报告链接对应路径、历史测试分类、当前收集匹配及源码不变检查见[本次核验JSON](evidence/document-review-2026-10-18.json)。
