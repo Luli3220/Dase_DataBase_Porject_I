@@ -1,4 +1,0 @@
-........................................................................ [ 73%]
-..........................                                               [100%]
----- generated xml file: E:\DBMS\Lab\Project1\docs\evidence\regression.xml ----
-98 passed in 16.62s

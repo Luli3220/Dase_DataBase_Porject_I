@@ -1,4 +1,0 @@
-........................................................................ [ 70%]
-..............................                                           [100%]
-- generated xml file: E:\DBMS\Lab\Project1\docs\evidence\restructure\pytest.xml -
-102 passed in 31.82s

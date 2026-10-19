@@ -1,6 +1,6 @@
 # 测试用例、步骤、输入、实际结果
 
-最近一次完整功能验收：113 PASS / 0 FAIL / 0 SKIP，见[用户名修正后的完整记录](evidence/respondent-username/README.md)与[full.xml](evidence/respondent-username/full.xml)。首轮102项的[逐项结果](evidence/case-results.md)及[final.xml](evidence/final.xml)继续作为历史证据；下表源于该轮业务用例，末节列出新增11项。执行源代码中的assert同时承担期望输出核对，不能把测试计划当作执行结果。2026-10-18只核对记录与收集数量，没有重跑完整功能测试。
+最近一次完整功能验收：113 PASS / 0 FAIL / 0 SKIP，见[完整记录](evidence/respondent-username/README.md)、[full.xml](evidence/respondent-username/full.xml)和[113项逐项索引](evidence/case-results.md)。首轮102项只保留[阶段汇总](evidence/final.txt)，下表原有用例仍包含在113项中，末节列出新增11项。执行源代码中的assert同时承担期望输出核对，不能把测试计划或索引重建当作新的测试执行。
 
 环境/命令见 [测试报告](test-report.md)。纯规则无数据库；集成测试每例新建随机survey_test_库，真实MongoDB；浏览器自动启动8001临时服务，用真实Chromium。
 
@@ -8,14 +8,14 @@
 
 |ID|目标/前提/步骤|输入|预期输出|实际/结果/证据|
 |---|---|---|---|---|
-|C01|创建：A注册并登录，POST /api/surveys，读草稿|title=四题样例，anonymous=true，latest_only|201；status=draft，draftVersion=1，publishedVersion=null，V1 revision=0|PASS；test_api_chain_versions_anonymity + test_version_cas_and_recovery；final.xml|
-|C02|添加题目：创建草稿，PUT四题配置；浏览器逐个添加并编辑|source/tests/fixtures.py四类题；expectedRevision=0|200，revision=1，嵌套配置BSON读取一致；UI可配全部字段|PASS；test_schema_indexes_bson、test_full_browser_flow；editor.png|
-|C03|跳转：依次执行固定R01..R15|下表给出的答案/非法配置|有效路径/优先级/提前结束符合规格|15/15 PASS；test_fixed_paths/invalid/bad_config；phase-a.xml/final.xml|
+|C01|创建：A注册并登录，POST /api/surveys，读草稿|title=四题样例，anonymous=true，latest_only|201；status=draft，draftVersion=1，publishedVersion=null，V1 revision=0|PASS；test_api_chain_versions_anonymity + test_version_cas_and_recovery；[full.xml](evidence/respondent-username/full.xml)|
+|C02|添加题目：创建草稿，PUT四题配置；浏览器逐个添加并编辑|source/tests/fixtures.py四类题；expectedRevision=0|200，revision=1，嵌套配置BSON读取一致；UI可配全部字段|PASS；test_schema_indexes_bson、test_full_browser_flow；[editor.png](evidence/respondent-username/editor.png)|
+|C03|跳转：依次执行固定R01..R15|下表给出的答案/非法配置|有效路径/优先级/提前结束符合规格|15/15 PASS；test_fixed_paths/invalid/bad_config；[full.xml](evidence/respondent-username/full.xml)|
 |C04|校验：构造合法/边界/错误答案，服务端重算|单/多选、Unicode、整数/分数、0、bool、NaN/Inf、极大整数|合法保存；非法拒绝DomainError/HTTP422；不丢有效0|PASS；test_rules.py及test_invalid_statuses_and_serialization|
 |C05|提交：B通过公开URL填写；相同UUID重试；再次新UUID；并发请求|Q1=no,Q3=8；Q1=yes,Q2=[python,java]|201；同UUID同ID；新UUID新文档；非法路径422；无覆盖|PASS；test_multiple_concurrency_and_deadlines、test_idempotency_stats_versions_privacy、真实22步HTTP|
 |C06|统计：同用户提交两份、切版后提交；查询两口径/单题|version=1/2，current_effective/historical_raw|原始2/有效1；新版本后V1有效0仍历史2；单题与全卷一致|PASS；test_api_chain_versions_anonymity、test_tie_breaker_pagination_and_numeric_text_samples|
-|C07|完整浏览器：A可视化编辑→预览→发布；B注册返回链接→改分支→提交→再填；A统计→V2→关闭|4类题和3类跳转，非法-1，含HTML标签的文本|预览0答卷；非法即时提示；分支旧答案清除；XSS文本安全；旧版409；关闭拒绝|PASS；test_full_browser_flow；editor/published/statistics.png|
-|C08|手机/键盘：390×844注册、Tab焦点、创建文本题|手机viewport；随机账号密码|密码框可Tab聚焦；页面无横向溢出；表单标签有效|PASS；test_mobile_keyboard_and_labels；mobile.png|
+|C07|完整浏览器：A可视化编辑→预览→发布；B注册返回链接→改分支→提交→再填；A统计→V2→关闭|4类题和3类跳转，非法-1，含HTML标签的文本|预览0答卷；非法即时提示；分支旧答案清除；XSS文本安全；旧版409；关闭拒绝|PASS；test_full_browser_flow；[界面截图](evidence/README.md)|
+|C08|手机/键盘：390×844注册、Tab焦点、创建文本题|手机viewport；随机账号密码|密码框可Tab聚焦；页面无横向溢出；表单标签有效|PASS；test_mobile_keyboard_and_labels；[mobile.png](evidence/respondent-username/mobile.png)|
 
 ## 固定fixture R01–R15
 
@@ -63,7 +63,7 @@ Q1单选必答yes/no，no→Q3；Q2多选必答python/java/cpp，1..3，包含py
 
 ## 复核步骤
 
-在项目根目录运行README命令；查看final.txt汇总和final.xml每个testcase。运行`scripts.http_demo`需要8000服务，脚本实际断言22个HTTP状态与关键统计/匿名内容，输出无密码JSON。浏览器测试保存实际页面截图，不使用生成/合成截图。暂未执行的Docker启动、容量压测、HTTPS部署明确见test-report.md，不属于上述PASS范围。
+按运行手册从source执行测试，查看[完整汇总](evidence/respondent-username/full.txt)和[JUnit逐项结果](evidence/respondent-username/full.xml)。运行`scripts.http_demo`需要8000服务，脚本实际断言22个HTTP状态与关键统计/匿名内容，输出无密码JSON。浏览器测试保存实际页面截图，不使用生成/合成截图。暂未执行的Docker启动、容量压测、HTTPS部署明确见test-report.md，不属于上述PASS范围。
 
 ## 后续：非匿名填写者用户名修正
 

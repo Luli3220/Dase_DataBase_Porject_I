@@ -1,28 +1,36 @@
-# 测试证据索引：当前结论与历史过程
+# 测试证据索引
 
-## 当前代码最近一次完整验收
+本目录保留15个必要文件。最新完整功能验收是 **113 passed / 0 failed / 0 errors / 0 skipped，37.82秒**；旧轮次的重复截图、重复XML和安装/服务器日志已精简，历史版本仍可从Git回溯。
 
-|入口|内容|
+## 建议阅读顺序
+
+|入口|作用|
 |---|---|
-|[respondent-username/README.md](respondent-username/README.md)|用户名修正的功能范围、测试命令与兼容性|
-|[full.txt](respondent-username/full.txt) / [full.xml](respondent-username/full.xml)|113 passed，0失败/错误/跳过，37.82秒；72单元+39数据库/API+2浏览器|
-|[targeted.txt](respondent-username/targeted.txt) / [targeted.xml](respondent-username/targeted.xml)|11个新增实例通过，7.02秒|
-|[原始环境错误](respondent-username/initial-no-mongo.txt) / [JUnit](respondent-username/initial-no-mongo.xml)|Mongo未启动时4通过、7个setup errors；保留错误记录，不计为成功|
+|[full.txt](respondent-username/full.txt)|最新113项完整验收的原始终端汇总；正式PDF已引用|
+|[逐项结果](case-results.md) / [full.xml](respondent-username/full.xml)|113个实例的名称、状态、耗时；索引由已有JUnit生成，不是新一轮测试|
+|[本轮验证说明](respondent-username/README.md)|用户名修正、匿名/跨版本、批量查询与兼容性|
+|[final-http.json](final-http.json)|22项真实HTTP请求检查；独立于pytest，正式PDF已引用|
+|[测试用例](../test-cases.md) / [测试报告](../test-report.md)|步骤、输入、预期/实际结果、环境与问题说明|
 
-该目录的截图及browser-server.log来自真实Chromium测试。桌面流程覆盖编辑、预览、发布、填写、跨版本统计，手机流程验证390px表单；不是113个浏览器测试，也不是113轮完整流程。
+113项包括72单元、39真实MongoDB/API/并发、2浏览器实例。不是113个浏览器测试，也不能把不同阶段数量累加成总数。
 
-## 其他历史证据
+## 其他保留材料
 
-|文件/目录|当时作用|结果/定位|
-|---|---|---|
-|phase-a.txt/xml|数据库/规则阶段验收|72项通过|
-|phase-b-api.txt/xml|API阶段验收|17项通过|
-|phase-b-http.json、[final-http.json](final-http.json)|真实HTTP独立演示|22个请求检查；不计入pytest的113项|
-|browser.txt/xml|首次浏览器验收|2项通过|
-|regression.txt/xml|边界测试扩充后的中间回归|98项通过|
-|[final.txt](final.txt)、[final.xml](final.xml)、[case-results.md](case-results.md)|首轮完整验收|102项；文件名final是当时命名，不代表当前最新数量|
-|environment.json、static-checks.json|首次测试环境/静态检查|时间点记录，不能当作当前部署状态|
-|[restructure/](restructure/README.md)|目录迁移后独立回归|102项通过，31.82秒；保留迁移证据|
-|根目录png、上述两轮目录png|不同阶段实际界面|按对应测试轮次查阅，无需逐一阅读|
+|材料|保留理由|
+|---|---|
+|[phase-a.txt](phase-a.txt)、[phase-b-api.txt](phase-b-api.txt)、[final.txt](final.txt)|少量原始阶段摘要：72、17、首轮102项通过；final.txt是历史命名，不是当前最新结果|
+|[targeted.txt](respondent-username/targeted.txt)|11项新增测试单独执行的汇总|
+|[initial-no-mongo.txt](respondent-username/initial-no-mongo.txt)|首次Mongo未启动时4通过、7项准备错误的原始输出，保留问题及恢复过程|
+|[editor.png](respondent-username/editor.png)、[published.png](respondent-username/published.png)、[statistics.png](respondent-username/statistics.png)、[mobile.png](respondent-username/mobile.png)|只保留最新一轮的一组真实页面截图；统计截图已被正式PDF引用|
 
-2026-10-18报告审核解析了原始JUnit和当前测试收集，确认数量一致，机器核对摘要见[document-review-2026-10-18.json](document-review-2026-10-18.json)；本次没有重跑MongoDB/API/浏览器测试。当前结果仍引用最近一次真实完整执行，不虚构新执行时间。详细测试步骤和结果解释见 [test-cases](../test-cases.md) 与 [test-report](../test-report.md)。
+目录整理回归、初次浏览器测试等中间记录可查看[对应历史提交](https://github.com/Luli3220/Dase_DataBase_Porject_I/tree/795c8b8c9a34ecf4275aa295325a201f3e1014de/docs/evidence)。当前目录不再同时维护多套相同页面截图。失败记录只保留原始txt，完整成功验收保留txt和机器可读XML；这些格式承担不同用途。
+
+## 如何更新
+
+从仓库根目录运行`source/scripts/run-tests.ps1`，或按[source/README](../../source/README.md)执行测试；结果和截图写入保留的同一目录。随后在source中执行：
+
+```powershell
+..\.venv\Scripts\python.exe -m scripts.build_evidence --index-only
+```
+
+该命令只根据已有full.xml重建逐项索引，不连接MongoDB、不生成新的环境/OpenAPI文件，也不执行测试。本次清理保留原始日志/截图内容，未重新运行功能测试，未将旧记录日期改为本次清理日期。

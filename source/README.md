@@ -60,7 +60,9 @@ setup脚本会自动生成随机密钥且不覆盖已有.env。`requirements-loc
 ..\.venv\Scripts\python.exe -m pytest tests/integration -q
 # 首次准备浏览器（也可通过PLAYWRIGHT_CHROMIUM_EXECUTABLE指定已有Chromium）
 ..\.venv\Scripts\python.exe -m playwright install chromium
-..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/evidence/final.xml
+$env:TEST_EVIDENCE_DIR='../docs/evidence/respondent-username'
+..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/evidence/respondent-username/full.xml
+..\.venv\Scripts\python.exe -m scripts.build_evidence --index-only
 ```
 
 单元测试不依赖Mongo；集成测试需要27018副本集；浏览器测试自动在8001启动隔离HTTP服务。每个测试分配独立随机survey_test_<uuid>数据库，仅清理本次新建库，不清空survey_dev。数据库缺失会明确失败，不伪装通过或静默跳过。完整结果见[测试报告](../docs/test-report.md)、[逐项结果](../docs/evidence/case-results.md)。

@@ -88,4 +88,4 @@
 - 当前执行pytest --collect-only：113 tests collected（0.72秒）；这仅是测试收集，不是113项重新通过。
 - 源码、数据库结构、统计口径和规则引擎不改动；本次仅整理报告索引、文档版本和AI说明。
 
-原件SHA256、报告链接对应路径、历史测试分类、当前收集匹配及源码不变检查见[本次核验JSON](evidence/document-review-2026-10-18.json)。
+原始机器核对摘要随中间证据精简，可在Git历史中查询；上文保留了实际核对范围与结论。当前完整测试证据见[evidence索引](evidence/README.md)。

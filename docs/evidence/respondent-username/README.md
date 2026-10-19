@@ -1,11 +1,11 @@
 # 非匿名填写者用户名修正：实际验证
 
-工作目录source，Python解释器../.venv/Scripts/python.exe。保留原始102项验收记录，本轮证据单独存放于此。
+工作目录source，Python解释器../.venv/Scripts/python.exe。本目录保留当前113项完整验收、新增测试和错误记录，以及一组真实界面截图。
 
 |执行|实际结果|证据|
 |---|---|---|
-|首次新增测试，Mongo未运行|4 passed / 7 setup errors，41.03秒；WinError10061|[首次输出](initial-no-mongo.txt)、[首次JUnit](initial-no-mongo.xml)|
-|复用原Mongo目录启动rs0后重跑新增测试|11 passed / 0 failed / 0 errors / 0 skipped，7.02秒|[输出](targeted.txt)、[JUnit](targeted.xml)|
+|首次新增测试，Mongo未运行|4 passed / 7 setup errors，41.03秒；WinError10061|[首次输出](initial-no-mongo.txt)|
+|复用原Mongo目录启动rs0后重跑新增测试|11 passed / 0 failed / 0 errors / 0 skipped，7.02秒|[输出](targeted.txt)|
 |全部现有及新增测试|113 passed / 0 failed / 0 errors / 0 skipped，37.82秒|[输出](full.txt)、[JUnit](full.xml)|
 |JavaScript语法检查|node --check app/static/app.js，exit0|本轮实际执行|
 |依赖检查|No broken requirements found|本轮实际执行|
@@ -13,7 +13,7 @@
 命令：
 
 ```powershell
-..\.venv\Scripts\python.exe -m pytest tests/unit/test_owner_submission.py tests/integration/test_respondent_usernames.py -q --junitxml=../docs/evidence/respondent-username/targeted.xml
+..\.venv\Scripts\python.exe -m pytest tests/unit/test_owner_submission.py tests/integration/test_respondent_usernames.py -q
 $env:TEST_EVIDENCE_DIR='../docs/evidence/respondent-username'
 ..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/evidence/respondent-username/full.xml
 ```
