@@ -1,74 +1,82 @@
 # AI使用说明与证据索引
 
-本说明对应正式实验报告第6章“AI使用与设计演进”，按“工具—Prompt—产物—设计取舍/修改—验证”组织。开发实施与功能修正的记录为2026-10-16；本次索引核对日期为2026-10-18。当前正式叙述、原始Prompt和执行证据分开保存，避免重复复制大量聊天或把计划当作结果。
+在本项目中，我主要使用ChatGPT进行前期需求分析和数据库方案讨论，使用Codex Coding Agent辅助完成代码实现、自动化测试和技术文档。我的工作重点是结合课程要求明确业务语义、比较设计方案，并在发现问题后提出具体的修改要求。代码编写、命令执行和自动化验证主要由Agent完成。
 
-## 1. 先看这些入口
+为了让AI使用过程能够被核对，我将相关材料按照“工具—Prompt—产物—修改—验证”进行整理，并保留了对应的代码、提交记录和测试结果。本说明与正式实验报告第6章“AI使用与设计演进”相对应。
 
-|入口|内容及边界|
+## 1. 相关记录与材料
+
+|入口|内容|
 |---|---|
-|[正式实验报告](report/DataBase_Project_1.pdf)第6–7页|作者关于需求分析、候选方案比较、AI实施、问题与修正的说明|
-|[ChatGPT分享记录](https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816)|作者提供的前期设计讨论入口；PDF中已有同一地址。本次网页工具未能读取全文，不转述未核验的具体轮次/原句|
-|[原始Prompt目录](../prompts/README.md)|总控及A/B/C分阶段规格的完整原文，不以本说明摘要替代原文|
-|[源码](../source/app/) / [测试](../source/tests/)|Agent实际生成并在后续修改的实现|
-|[测试总索引](evidence/README.md)|阶段72/17、初次102、目录整理102、用户名修正113及失败记录|
-|[首次逐轮实施日志](https://github.com/Luli3220/Dase_DataBase_Porject_I/blob/744a4d298e4e0ae779c8bee421aba6d7ae6f7ff3/docs/ai-usage-log.md)|本说明整理前的完整历史版本，固定commit可回溯，不复制成另一份并行现行日志|
+|[正式实验报告](report/DataBase_Project_1.pdf)第6–7页|我对需求分析、方案选择、AI辅助实现及问题修正的总结|
+|[ChatGPT讨论记录](https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816)|我与ChatGPT进行前期需求分析和数据库方案讨论的记录|
+|[原始Prompt目录](../prompts/README.md)|我交给Coding Agent的总控要求及A/B/C三个阶段的开发规格|
+|[源码](../source/app/) / [测试](../source/tests/)|Agent根据需求生成并逐步修改的程序和测试代码|
+|[测试总索引](evidence/README.md)|各阶段的实际执行结果，包括失败记录及后续回归|
+|[早期实施日志](https://github.com/Luli3220/Dase_DataBase_Porject_I/blob/744a4d298e4e0ae779c8bee421aba6d7ae6f7ff3/docs/ai-usage-log.md)|整理前的完整记录，可通过固定提交回溯|
 
-ChatGPT分享页与Coding Agent的实施记录不是同一个证据入口：前者用于前期讨论，后者以仓库Prompt、Git提交、代码与测试日志核验；不默认分享页包含全部工具执行过程。
+前期讨论与程序执行的记录分别保存。讨论记录用于说明需求和设计是如何确定的，具体实现及验证结果则通过仓库中的Prompt、代码、Git提交和测试日志核对。
 
-## 2. 使用了哪些工具，作者与AI分别做什么
+## 2. 我的工作与AI的工作
 
-**工具。** 前期设计讨论使用ChatGPT（作者提供分享链接）；实现阶段使用Codex Coding Agent，通过PowerShell查看材料、编辑代码、执行Python/pytest/httpx/真实MongoDB及Playwright/Chromium。报告核对使用PDF文本提取及逐页渲染。没有采用现成问卷系统或关系数据库，不编造未记录的模型版本、对话轮数或人工操作。
+**使用工具。** 我在前期使用ChatGPT讨论问卷系统的数据组织方式、实体关系、版本管理和重复填写策略。在设计要求明确后，我将任务整理为分阶段Prompt，交给Codex Coding Agent实施。Agent通过PowerShell查看材料、编辑代码，并使用Python、pytest、httpx、真实MongoDB及Playwright/Chromium进行验证。后续报告检查也由Agent辅助完成，包括PDF阅读、文档链接检查和测试记录核对。
 
-**作者的工作。** 按正式报告第6章，作者的工作重点是结合课程要求比较数据组织方案、确定业务语义和验收标准，并提出后续修正要求。当前可核对的设计输入包括四集合结构、内容版本与Schema版本分离、已发布版本保留、匿名不等于免登录、历史答卷保留以及跨版本latest_only口径。后续“非匿名答卷应显示注册用户名、历史匿名仍受保护”的要求也是作者在会话中明确提出的。
+**我的主要工作。** 我主要负责明确系统要解决的问题和需要遵守的业务规则。在数据库设计上，我与AI比较了将历史版本集中保存、将版本独立保存以及进一步拆分题目和选项等方案，最终采用users、surveys、survey_versions和submissions四集合模型。同时，我明确了已发布版本应保持不变、匿名填写仍需登录、每次新提交保留历史，以及latest_only必须先在整份问卷的所有版本中选取最新提交等约束。
 
-**AI的工作。** Agent读取已确定的课程材料和规格，完成Schema/索引、数据访问、规则解释器、服务/API、认证、网页、测试与技术文档；实际执行命令、发现或复核边界问题，再按要求修改并回归。Agent对实现方式的选择（如副本集事务、CAS、响应白名单）在设计文档中说明理由。
+在后续使用和检查中，我也提出了具体的修正要求。例如，非匿名答卷不应只显示内部用户ID，而应显示注册用户名；同时，这项修改不能破坏历史匿名保护，也不能引入逐份答卷查询用户的问题。我将这些要求反馈给Agent，由其完成最小范围的修改并补充测试。
 
-**修改如何归属。** “作者提出设计取舍或修改要求”不等于“作者亲手改写了代码”。本记录中，具体代码修改和自动化验证由Agent完成；未声称作者手工修改/逐行审查过代码。早期候选方案比较按作者报告说明，并通过分享链接提供来源；没有成功读取的早期对话不伪造为逐字记录。
+**AI的主要工作。** Agent读取课程要求和开发规格后，完成了MongoDB Schema与索引、数据访问、规则引擎、后端API、身份认证、前端页面、自动化测试和技术文档。实现中的事务处理、草稿乐观锁、匿名响应字段控制等具体机制，也由Agent实现并在设计文档中说明。
 
-## 3. 实际Prompt—产物—修改索引
+因此，我对项目的修改主要体现在需求、方案取舍、验收约束和问题反馈上；具体代码修改与自动化测试由Agent执行。我在记录中将这两类工作分别说明，而没有将Agent完成的操作写成我手工编写或逐行修改了代码。
 
-下表标明原文文件或准确短引；摘要不是虚构的完整对话。
+## 3. Prompt、代码产物与修改索引
 
-|编号/输入来源|实际任务/Prompt|得到的实现|修改或约束落实|验证入口|
+我按照数据库与规则、API与网页、测试与交付的顺序组织任务。下表给出实际Prompt文件或原句短引，并列出对应的实现、修改和验证入口；具体要求以链接中的原文为准。
+
+|编号/输入来源|我的要求或Prompt|得到的实现|修改或约束落实|验证入口|
 |---|---|---|---|---|
-|P0：用户首轮要求 + [总控原文](../prompts/00-总控Prompt.md)|准确短引：“请直接创建真实可运行的代码，不要只输出方案或伪代码”；要求A→B→C逐阶段执行测试|可运行项目、实施顺序、分层结构|业务数据仅MongoDB；每阶段先验收再继续|[阶段验收与执行记录](evidence/README.md)|
-|P1：[数据库与规则原文](../prompts/01-数据库与规则引擎.md)|四集合、BSON、版本指针/冻结、匿名、重复、声明式跳转、固定fixture|[Schema/索引](../source/app/db/mongo.py)、[文档模型](../source/app/models/documents.py)、[规则引擎](../source/app/rules/engine.py)、[问卷服务](../source/app/services/surveys.py)|事务处理跨集合写；revision CAS；先冻结后切指针；路径复核和幂等唯一索引|[Phase A](evidence/phase-a.txt)：72通过|
-|P2：[API与网页原文](../prompts/02-后端API与网页.md)|注册登录、ownership、公开填写、可视化编辑/预览、版本/统计界面|[认证](../source/app/services/auth.py)、[API](../source/app/api/routes.py)、[网页](../source/app/static/app.js)|签名Cookie/CSRF、明确匿名DTO、日期输入解析、分支答案清除、重试沿用UUID|[API阶段](evidence/phase-b-api.txt)：17通过；[HTTP](evidence/final-http.json)：22项PASS|
-|P3：[测试与验收原文](../prompts/03-测试文档与验收.md)|真实Mongo、权限/版本/并发/匿名/统计/边界、步骤与输入输出、文档和AI日志|[unit/integration/web测试](../source/tests/)、[用例](test-cases.md)、[报告](test-report.md)|增加极大整数、退出撤销、分块请求、统计snapshot；保留真实错误和未验证项|[首次完整](evidence/final.txt)：102通过|
-|P4：用户目录整理要求|准确短引：“prompt可以放一个目录，然后source可以放一个目录……做好索引”|requirements/prompts/source/docs及各README|修正脚本工作目录、证据与打包根路径；保留Mongo数据及原材料|[目录迁移](evidence/restructure/README.md)：102通过|
-|P5：用户名修正要求|准确短引：“为非匿名答卷增加respondentUsername字段，数据来自users.username”；要求批量、历史匿名、最小修改|[owner_submission/list_owner](../source/app/services/submissions.py)、网页身份显示、[新增测试](../source/tests/integration/test_respondent_usernames.py)|当前页去重ID的一次users.find；仅非匿名输出用户名；缺失为null保留ID；架构/规则/统计不改|[新增11项及完整113项](evidence/respondent-username/README.md)|
-|P6：用户最终报告核对要求|本次输入摘要：按原始PDF检查完成报告、解释docs内容、明确AI使用并加入分享索引|[逐项核对](requirements-traceability.md)、本文、文档/证据总索引|正式PDF原样收录；修正最新113/历史102定位；不改业务代码、不改写历史执行结果|2026-10-18逐页阅读与测试收集113项；不是功能测试重跑|
+|P0：[总控原文](../prompts/00-总控Prompt.md)|“请直接创建真实可运行的代码，不要只输出方案或伪代码”；按照A→B→C推进，每阶段实际执行测试|可运行项目、阶段任务及分层结构|业务数据只使用MongoDB，每阶段验收后继续|[阶段验收与执行记录](evidence/README.md)|
+|P1：[数据库与规则原文](../prompts/01-数据库与规则引擎.md)|实现四集合、BSON映射、版本管理、匿名、重复填写及声明式跳转|[Schema/索引](../source/app/db/mongo.py)、[文档模型](../source/app/models/documents.py)、[规则引擎](../source/app/rules/engine.py)、[问卷服务](../source/app/services/surveys.py)|事务处理跨集合写入；revision乐观锁；先冻结后切换发布指针；服务端重算填写路径|[Phase A](evidence/phase-a.txt)：72项通过|
+|P2：[API与网页原文](../prompts/02-后端API与网页.md)|实现注册登录、所有者权限、公开填写、可视化编辑、预览及统计界面|[认证](../source/app/services/auth.py)、[API](../source/app/api/routes.py)、[网页](../source/app/static/app.js)|Cookie与CSRF保护；匿名响应字段控制；日期解析；清除失效分支答案；重试沿用UUID|[API阶段](evidence/phase-b-api.txt)：17项通过；[HTTP](evidence/final-http.json)：22项PASS|
+|P3：[测试与验收原文](../prompts/03-测试文档与验收.md)|使用真实MongoDB验证权限、版本、并发、匿名和统计，写清输入、输出及结果|[单元/集成/浏览器测试](../source/tests/)、[测试用例](test-cases.md)、[测试报告](test-report.md)|补充极大整数、会话撤销、分块请求及统计快照测试；保留实际错误和未验证项|[首次完整测试](evidence/final.txt)：102项通过|
+|P4：我的目录整理要求|“prompt可以放一个目录，然后source可以放一个目录……做好索引”|requirements/prompts/source/docs及各目录README|调整脚本、证据和打包路径，保留原始资料与MongoDB数据|[目录迁移回归](evidence/restructure/README.md)：102项通过|
+|P5：我的用户名显示修正要求|“为非匿名答卷增加respondentUsername字段，数据来自users.username”；要求批量查询并保护历史匿名|[答卷服务](../source/app/services/submissions.py)、网页显示及[新增测试](../source/tests/integration/test_respondent_usernames.py)|只批量查询当前页非匿名用户；匿名不返回身份；缺失用户名回退；不改架构、规则或统计口径|[新增11项及完整113项](evidence/respondent-username/README.md)|
+|P6：我的报告核对与文档精简要求|按照课程PDF检查最终报告，明确AI使用过程、提供索引并精简冗余内容|[课程要求核对](requirements-traceability.md)、本说明及文档/证据索引|正式PDF保持原样；区分最新113项与历史102项，删除重复过程档案|报告阅读、文档链接及历史测试记录检查，不作为新一轮功能测试|
 
-## 4. 方案取舍与AI实现问题分别记录
+## 4. 设计取舍与实际问题
 
-**设计取舍。** 报告比较了“配置与版本集中在问卷文档”“版本独立文档”“题目/选项进一步拆分”等方案，最终采用四集合。这里的候选方案A是讨论中的备选设计，不代表系统曾实际按该方案运行或已经发生历史数据损坏。跨版本先去重再筛版本、匿名身份内外分离，同样属于业务语义与设计约束的明确过程，不能把它们虚构成已发生的线上事故。
+**方案选择。** 在数据库方案讨论中，我重点考虑了完整问卷的读取、历史版本的解释以及答卷持续增长的问题。将所有版本集中在同一个问卷文档中虽然简单，但会增加文档增长和版本管理的负担；将题目、选项进一步拆分，又会增加完整问卷的查询与组装工作。因此，我最终选择独立保存问卷版本，并在版本内部嵌入题目配置、在答卷内部嵌入答案。
 
-**实际实施问题及修正。**
+这些内容属于候选方案的比较和业务约束的明确过程。我将它们与实际调试中发现的问题分开记录，避免把设计风险写成已经发生的数据故障。
 
-|问题/发现方式|实际修改|证据/限制|
+**实际问题与修正。** 开发过程中，Agent的代码检查、运行和页面验证发现了一些问题；我也在后续检查中提出了改进要求。相关处理如下。
+
+|问题及发现方式|Agent完成的修改|验证与说明|
 |---|---|---|
-|conda启动器异常，db为Python3.10.21且缺依赖；系统包继承出现无关依赖冲突|改用3.11.5独立venv，关闭系统包继承、锁定版本|pip check通过；没有修改原conda环境|
-|沙箱pip网络异常、Docker daemon未运行，后台Mongo进程曾无法持续连接|使用批准的依赖安装执行与常驻本机mongod/rs0|真实Mongo测试；Docker只验证配置，不声称容器运行|
-|审查发现严格日期模型可能拒绝ISO字符串|仅对AwareDatetime输入允许必要解析，仍拒绝无时区时间|API日期测试|
-|审查发现极大整数在math.isfinite前可能转换溢出|先检查安全范围，再判断有限值；加入10**1000测试|静态审查发现的风险，不虚称曾触发失败测试|
-|视觉检查发现选择题答卷显示内部选项ID|按原问卷版本映射选项标签|真实浏览器与截图；历史答案仍保存稳定ID|
-|作者发现非匿名答卷显示内部用户ID|批量补用户名，前端优先显示；匿名快照控制DTO|新增11项，完整113项通过|
-|用户名修正首次测试时Mongo未启动|复用原数据目录启动rs0，不修改功能代码即重跑|[首次4通过/7准备错误](evidence/respondent-username/initial-no-mongo.txt)与[随后11通过](evidence/respondent-username/targeted.txt)均保留|
+|原有conda db环境为Python3.10.21，缺少依赖，初期继承系统包还出现依赖冲突|改用Python3.11.5独立虚拟环境，关闭系统包继承并固定依赖版本|pip check通过，原conda环境未改动|
+|依赖下载受运行环境限制；Docker后台未运行；后台Mongo进程曾无法持续连接|调整依赖安装执行方式，使用常驻本机MongoDB单节点副本集|使用真实MongoDB测试；Docker仅检查配置，没有完成容器运行验证|
+|代码检查发现严格日期模型可能拒绝正常ISO时间字符串|允许时间字段进行必要解析，继续拒绝不带时区的时间|由API测试验证|
+|代码检查发现极大整数可能在有限值判断时发生转换溢出|先检查数值安全范围，再判断有限性，补充10**1000边界测试|这是审查发现的风险，未写成已经触发过的失败测试|
+|页面检查发现答卷直接显示内部选项ID|根据对应历史问卷版本映射选项标签|通过真实浏览器测试，答案仍保存稳定ID|
+|我发现非匿名答卷只显示内部用户ID，提出应显示注册用户名|批量读取用户名，前端优先显示；继续按提交时的匿名设置控制响应|新增11项测试，完整113项通过|
+|用户名修正首次测试时MongoDB未启动|复用原数据目录启动副本集后重新执行|保留[首次4通过/7项准备错误](evidence/respondent-username/initial-no-mongo.txt)及[随后11项通过](evidence/respondent-username/targeted.txt)的记录|
 
-## 5. 实际验证与代码版本
+## 5. 实际测试与版本记录
+
+我要求Agent在各阶段完成后实际执行测试，并保留命令、输出和JUnit结果。以下数字来自执行记录，不是预期结果。
 
 |版本/阶段|实际结果|证据|
 |---|---|---|
-|首次交付[80ac7d3](https://github.com/Luli3220/Dase_DataBase_Porject_I/commit/80ac7d327ed8f133e657a62e688827c6901fba60)|最终102项通过；阶段A72、阶段B17；独立HTTP22项PASS|[证据索引](evidence/README.md)|
-|目录整理[795c8b8](https://github.com/Luli3220/Dase_DataBase_Porject_I/commit/795c8b8c9a34ecf4275aa295325a201f3e1014de)|102项通过，31.82秒|[restructure](evidence/restructure/README.md)|
-|功能修正[744a4d2](https://github.com/Luli3220/Dase_DataBase_Porject_I/commit/744a4d298e4e0ae779c8bee421aba6d7ae6f7ff3)|新增11项通过；完整113项通过，37.82秒|[full.txt](evidence/respondent-username/full.txt)、[full.xml](evidence/respondent-username/full.xml)|
+|首次交付[80ac7d3](https://github.com/Luli3220/Dase_DataBase_Porject_I/commit/80ac7d327ed8f133e657a62e688827c6901fba60)|完整测试102项通过；此前阶段A72项、阶段B17项；另有22项独立HTTP检查|[测试证据索引](evidence/README.md)|
+|目录整理[795c8b8](https://github.com/Luli3220/Dase_DataBase_Porject_I/commit/795c8b8c9a34ecf4275aa295325a201f3e1014de)|102项通过，31.82秒|[目录迁移记录](evidence/restructure/README.md)|
+|用户名修正[744a4d2](https://github.com/Luli3220/Dase_DataBase_Porject_I/commit/744a4d298e4e0ae779c8bee421aba6d7ae6f7ff3)|新增11项通过；完整113项通过，37.82秒|[实际输出](evidence/respondent-username/full.txt)、[JUnit](evidence/respondent-username/full.xml)|
 
-113项为72单元、39真实数据库/API/并发、2浏览器实例；不同阶段数量不能相加为一个“总测试数”。22项HTTP检查独立于pytest。2026-10-18核对了原始XML及当前测试收集的113项，没有重新运行功能测试，也没有把旧记录的日期更新为今天。
+最近一次完整功能测试的113项包括72项单元测试、39项数据库/API/并发测试和2项浏览器测试。各阶段数字对应不同版本，不能累加为一个总数；22项HTTP检查也独立于pytest。
 
-2026-10-19按作者要求删除4份重复的过程档案，清理文档引用并更新交付清单；不改代码或测试，旧内容保留在Git历史。
+在后续文档整理中，我请Agent核对正式报告、历史结果和当前测试数量。2026-10-18进行的是报告阅读、记录核对及113项测试收集，没有重新执行功能测试；2026-10-19又根据我的要求删除了重复的过程档案。这些文档调整没有修改业务代码或测试，旧版本仍可通过Git历史回溯。
 
-## 6. 结论与未验证范围
+## 6. 使用体会与当前限制
 
-AI承担了主要代码实现、自动化执行和部分问题修复；作者负责提出课程目标、设计/验收约束和具体修正要求。判断依据是可追踪的规格、代码修改、真实测试结果以及作者提供的报告/讨论入口，不能仅依据AI自述“已完成”。
+通过本项目，我体会到AI可以提高代码实现、测试构造和文档整理的效率，但业务需求、数据一致性和设计取舍仍需要结合项目目标进行判断。在实施过程中，我先明确约束，再根据实现中暴露的问题提出修正要求，并要求Agent用实际测试验证修改。
 
-未验证项仍包括Docker容器构建/运行、公网HTTPS部署、容量压测、多节点故障转移和其他浏览器引擎；本次分享页自动读取也未成功。以上限制与已通过的本机功能测试分开说明，避免夸大实现或人工参与。
+目前，项目已完成本机环境中的上述功能验证，但尚未完成Docker容器构建与运行、公网HTTPS部署、容量压测、多节点故障转移及其他浏览器引擎测试。我将这些内容保留为当前限制，不把本机测试通过扩大解释为所有运行环境和应用规模都已得到验证。
