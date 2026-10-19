@@ -1,36 +1,37 @@
-# 测试证据索引
+# 测试记录
 
-本目录保留15个必要文件。最新完整功能验收是 **113 passed / 0 failed / 0 errors / 0 skipped，37.82秒**；旧轮次的重复截图、重复XML和安装/服务器日志已精简，历史版本仍可从Git回溯。
+完整验收结果为 **113项通过，耗时37.82秒**，包括72项单元测试、39项数据库及接口集成测试，以及2项浏览器测试。
 
-## 建议阅读顺序
+## 完整验收
 
-|入口|作用|
+|文件|内容|
 |---|---|
-|[full.txt](respondent-username/full.txt)|最新113项完整验收的原始终端汇总；正式PDF已引用|
-|[逐项结果](case-results.md) / [full.xml](respondent-username/full.xml)|113个实例的名称、状态、耗时；索引由已有JUnit生成，不是新一轮测试|
-|[本轮验证说明](respondent-username/README.md)|用户名修正、匿名/跨版本、批量查询与兼容性|
-|[final-http.json](final-http.json)|22项真实HTTP请求检查；独立于pytest，正式PDF已引用|
-|[测试用例](../test-cases.md) / [测试报告](../test-report.md)|步骤、输入、预期/实际结果、环境与问题说明|
+|[执行输出](respondent-username/full.txt)|完整测试的终端汇总|
+|[逐项结果](case-results.md)|测试名称、状态及耗时|
+|[JUnit](respondent-username/full.xml)|机器可读的完整执行记录|
+|[用户名修正验证](respondent-username/README.md)|匿名、实名、跨版本与批量查询的测试说明|
+|[HTTP检查](final-http.json)|22项独立HTTP请求检查|
 
-113项包括72单元、39真实MongoDB/API/并发、2浏览器实例。不是113个浏览器测试，也不能把不同阶段数量累加成总数。
+## 阶段记录
 
-## 其他保留材料
-
-|材料|保留理由|
+|文件|结果|
 |---|---|
-|[phase-a.txt](phase-a.txt)、[phase-b-api.txt](phase-b-api.txt)、[final.txt](final.txt)|少量原始阶段摘要：72、17、首轮102项通过；final.txt是历史命名，不是当前最新结果|
-|[targeted.txt](respondent-username/targeted.txt)|11项新增测试单独执行的汇总|
-|[initial-no-mongo.txt](respondent-username/initial-no-mongo.txt)|首次Mongo未启动时4通过、7项准备错误的原始输出，保留问题及恢复过程|
-|[editor.png](respondent-username/editor.png)、[published.png](respondent-username/published.png)、[statistics.png](respondent-username/statistics.png)、[mobile.png](respondent-username/mobile.png)|只保留最新一轮的一组真实页面截图；统计截图已被正式PDF引用|
+|[数据库与规则阶段](phase-a.txt)|72项通过|
+|[API阶段](phase-b-api.txt)|17项通过|
+|[首次完整交付](final.txt)|102项通过|
+|[用户名修正新增测试](respondent-username/targeted.txt)|11项通过|
+|[环境错误记录](respondent-username/initial-no-mongo.txt)|MongoDB未启动时出现7项测试准备错误，启动后重跑通过|
 
-目录整理回归、初次浏览器测试等中间记录可查看[对应历史提交](https://github.com/Luli3220/Dase_DataBase_Porject_I/tree/795c8b8c9a34ecf4275aa295325a201f3e1014de/docs/evidence)。当前目录不再同时维护多套相同页面截图。失败记录只保留原始txt，完整成功验收保留txt和机器可读XML；这些格式承担不同用途。
+## 界面截图
 
-## 如何更新
+[问卷编辑](respondent-username/editor.png) · [发布结果](respondent-username/published.png) · [统计页面](respondent-username/statistics.png) · [手机表单](respondent-username/mobile.png)
 
-从仓库根目录运行`source/scripts/run-tests.ps1`，或按[source/README](../../source/README.md)执行测试；结果和截图写入保留的同一目录。随后在source中执行：
+## 更新记录
+
+测试命令见[运行手册](../../source/README.md)。完成测试后，在source目录生成逐项索引：
 
 ```powershell
 ..\.venv\Scripts\python.exe -m scripts.build_evidence --index-only
 ```
 
-该命令只根据已有full.xml重建逐项索引，不连接MongoDB、不生成新的环境/OpenAPI文件，也不执行测试。本次清理保留原始日志/截图内容，未重新运行功能测试，未将旧记录日期改为本次清理日期。
+该命令读取full.xml，更新case-results.md。测试步骤和结果分析分别见[测试用例](../test-cases.md)与[测试报告](../test-report.md)。

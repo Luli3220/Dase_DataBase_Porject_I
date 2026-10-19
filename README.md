@@ -1,15 +1,15 @@
 # 问卷工坊 · MongoDB 在线问卷系统
 
-课程第一阶段项目。支持注册登录、四类题目、可配置跳转与校验、版本发布、登录填写、匿名与重复提交、单题及整卷统计。
+本项目是数据库课程第一阶段的在线问卷系统，使用MongoDB、FastAPI和JavaScript实现注册登录、问卷编辑与发布、条件跳转、匿名填写、重复提交及结果统计。
 
 ## 仓库索引
 
 |目录|内容|入口|
 |---|---|---|
 |[requirements/](requirements/)|课程原始要求|[作业PDF](requirements/project1.pdf)|
-|[prompts/](prompts/)|开发Prompt与分阶段规格，保留原文|[规格阅读顺序](prompts/README.md)|
+|[prompts/](prompts/)|开发Prompt与分阶段规格|[规格阅读顺序](prompts/README.md)|
 |[source/](source/)|后端、网页、测试、脚本、依赖及Docker配置|[安装、启动与测试](source/README.md)|
-|[docs/](docs/)|系统/数据库/API设计、测试证据、AI日志、完成报告|[文档总索引](docs/README.md)|
+|[docs/](docs/)|系统/数据库/API设计、测试记录及AI使用说明|[文档总索引](docs/README.md)|
 
 ```text
 Project1/
@@ -19,14 +19,13 @@ Project1/
 ├── source/
 │   ├── app/                  # FastAPI、业务服务、规则与网页
 │   ├── tests/                # 单元 / MongoDB集成 / 浏览器测试
-│   ├── scripts/              # 安装、初始化、演示、测试、打包
+│   ├── scripts/              # 安装、初始化、演示与测试
 │   ├── README.md             # 运行手册
 │   ├── requirements*.txt     # 依赖及精确版本
 │   ├── .env.example          # 配置样例
 │   └── docker-compose.yml    # Docker替代配置
 └── docs/
     ├── README.md             # 文档导航
-    ├── report/               # 作者完成的正式PDF报告
     ├── adr/                  # 设计决策
     └── evidence/             # 真实测试结果与截图
 ```
@@ -45,13 +44,11 @@ cd source
 
 访问 [登录](http://127.0.0.1:8000/login)、[注册](http://127.0.0.1:8000/register)、[API文档](http://127.0.0.1:8000/docs)。完整配置、常驻Mongo启动、Docker、测试和演示操作见 [运行手册](source/README.md)。
 
-## 验收入口
+## 项目资料
 
-- [正式实验报告](docs/report/DataBase_Project_1.pdf)与[课程要求核对](docs/requirements-traceability.md)
-- [测试报告](docs/test-report.md)与[证据总索引](docs/evidence/README.md)：最近一次完整验收113项通过，早期102项记录作为历史保留。
+- [课程要求与提交材料对应](docs/requirements-traceability.md)
+- [测试报告](docs/test-report.md)与[测试记录](docs/evidence/README.md)：完整验收113项通过。
 - [数据库设计](docs/database-design.md)、[API说明](docs/api.md)、[需求追踪](docs/requirements-traceability.md)
 - [AI使用说明与Prompt/产物索引](docs/ai-usage-log.md) · [ChatGPT前期讨论](https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816)
 
-业务数据只使用MongoDB。匿名保护、问卷内容版本、重复填写统计口径遵循既定规格。Docker容器运行、公网部署和容量压测未验证，详情见测试报告。
-
-本机 `.venv/`、`.local/`、`source/.env`、缓存及 `delivery/` 为忽略项，不进入Git。打包在source目录执行 `python -m scripts.package_delivery`，输出到仓库根目录delivery。
+项目报告通过课程平台提交，报告中的GitHub链接对应本仓库。本地Python环境位于.venv，MongoDB数据位于.local，应用配置位于source/.env。

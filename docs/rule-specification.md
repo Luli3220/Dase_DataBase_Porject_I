@@ -1,15 +1,49 @@
-# 规则与校验规范
+# 题目校验与跳转规则
 
-实现入口：`source/app/rules/engine.py`，纯函数，不依赖 HTTP/Mongo。`validate_question_config` 静态检查，`validate_answer` 动态规范化，`evaluate_condition` 白名单解释，`next_question` 取首条命中，`trace_path_and_validate_submission` 重算有效路径。
+规则引擎位于[source/app/rules/engine.py](../source/app/rules/engine.py)，负责配置检查、答案规范化、条件匹配和填写路径计算。
 
-四题型 single_choice/multiple_choice/text/number。选择题只保存稳定选项 ID，不保存显示标签。文本 trim 后按 Unicode 码点长度检查和保存。数字只接受有限 JSON number，拒绝 bool、字符串、NaN/Infinity；绝对值上限 2^53-1 保证 BSON/浏览器一致。数字支持 min/max/integerOnly。手机号课程整数示例可用数字题；真实号码建议文本保留前导零和国际区号。
+## 题型与答案
 
-可选题缺失/null、空白文本/空数组多选统一“不回答”，不落 answers；必答题访问到时则拒绝。单选或数字的空字符串非法。0 是有效数字。多选必须无重复且合法，一旦选择须满足数量限制；未选可选题不触发条件。静态检查 0≤min≤max（多选≤选项数，文本≤10000），不支持参数拒绝，必答多选必须至少允许一项。
+|题型|答案格式|校验条件|
+|---|---|---|
+|single_choice|选项ID字符串|选项有效、必答检查|
+|multiple_choice|选项ID数组|选项有效、无重复、minSelections/maxSelections|
+|text|字符串|去除首尾空白后，按Unicode码点检查minLength/maxLength|
+|number|JSON数字|min/max/integerOnly，有限值，绝对值不超过2^53-1|
 
-单选 eq；多选 contains_any（交集非空）、contains_all（operand 是答案子集）；数字 eq/gt/gte/lt/lte；文本无跳转操作。operand 严格验证选项数组/数值，priority 为0..1000000整数且同题唯一，升序首条命中生效。rule.id 同题唯一，question.id 全版本唯一，option.id 同题唯一。
+数字答案拒绝布尔、数字字符串及NaN/Infinity，0是有效值。手机号等标识可用文本保存前导零和国际区号；数字题也支持课程中的整数示例。
 
-目标 `{kind:question,questionId:...}` 或 `{kind:end}`；只能向数组后方跳，禁止自跳、回跳和不存在目标。未命中走数组下一题，最后一题结束，不存冗余 order。执行不使用 eval/exec/用户脚本。端到端路径从首题开始，验证路径上必答；携带任何不在有效路径的答案（即使为null）均拒绝；未知或重复题 ID 拒绝。
+可选题的缺失、null、空白文本和空多选统一视为未回答，省略于answers；必答检查在路径访问到该题时生效。单选和数字的空字符串属于非法输入。多选一旦选择，就按数量上下限校验；必答多选至少选择一项。
 
-错误统一 `{error:{code,message,details}}`；规则错误 INVALID_ROUTING_RULE，答案/参数 VALIDATION_ERROR，details 提供 questionId/field，HTTP422。草稿版本冲突 DRAFT_CONFLICT、旧版提交 SURVEY_VERSION_CHANGED、关闭 SURVEY_CLOSED、过期 SURVEY_EXPIRED 为409。
+## 配置检查
 
-固定 fixture 精确对应规格 R01..R15；Q3“否则 END”使用第二条 lt10/end 规则表达，保证默认语义始终是下一题，而非为 Q3 硬编码。规则配置/执行都受测试覆盖。第二阶段增加题型时在模型、静态参数、答案、运算符、前端控件、统计分派增加实现，并保持旧 schemaVersion 解释器可用。
+发布前检查题目ID、选项ID、规则ID、优先级、参数边界和跳转目标。question.id在版本内唯一，option.id与rule.id在题目内唯一。priority为0..1000000整数，同题规则优先级各不相同。
+
+文本长度和多选数量满足0≤min≤max；文本上限10000码点，多选上限为选项数。数字边界满足min≤max，integerOnly为布尔值。题目按questions数组排序，跳转使用稳定题目ID。
+
+## 条件与目标
+
+|题型|运算符|含义|
+|---|---|---|
+|单选|eq|等于指定选项|
+|多选|contains_any|包含操作数中的任一选项|
+|多选|contains_all|包含操作数中的全部选项|
+|数字|eq、gt、gte、lt、lte|相应数值比较|
+
+第一阶段的文本题按顺序前进。选择题操作数必须引用有效选项，多选操作数为非空、无重复数组；数字操作数为有限数值。
+
+目标为`{kind:question,questionId:...}`或`{kind:end}`。题目目标必须存在且位于当前题之后；end直接结束问卷。同题规则按priority升序匹配，第一条成立后生效；未匹配时进入数组下一题，最后一题结束。可选题未回答时同样进入下一题。
+
+## 填写路径
+
+服务器从首题开始，逐题规范化答案并计算下一位置，直到结束。实际路径上的必答题需要回答；未知题目、重复题目以及路径外答案会被拒绝。最终保存的是规范化后的路径答案。
+
+对应函数为validate_question_config、validate_answer、evaluate_condition、next_question与trace_path_and_validate_submission。规则解释器按白名单处理条件。
+
+固定样例与R01–R15见[测试用例](test-cases.md)。其中Q3的“否则结束”通过lt10/end规则表达，默认前进逻辑仍为下一题。
+
+## 错误与扩展
+
+错误结构为`{error:{code,message,details}}`。配置/答案错误返回422 VALIDATION_ERROR或INVALID_ROUTING_RULE，details包含questionId及field；草稿冲突、版本变化、关闭和过期使用相应409错误码，详见[API文档](api.md)。
+
+新增题型时，需要扩展请求模型、配置/答案校验、前端控件和统计服务；新增条件时扩展操作符白名单及匹配函数，并补充对应测试。

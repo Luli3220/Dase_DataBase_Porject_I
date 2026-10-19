@@ -1,47 +1,49 @@
-# 实际测试报告
+# 测试报告
 
-最近一次完整功能验收为 **113 passed / 0 failed / 0 errors / 0 skipped，37.82秒**。原始[终端汇总](evidence/respondent-username/full.txt)、[JUnit](evidence/respondent-username/full.xml)和[逐项索引](evidence/case-results.md)对应同一轮执行。不同阶段的测试数量不能累加。
+完整功能验收结果为 **113 passed、0 failed、0 skipped，耗时37.82秒**。其中包括72项单元测试、39项数据库及接口集成测试，以及2项浏览器测试。执行输出和各测试实例可通过[原始汇总](evidence/respondent-username/full.txt)、[JUnit](evidence/respondent-username/full.xml)及[逐项记录](evidence/case-results.md)查看。
 
-## 环境与实际结果
+## 测试环境
 
-执行环境：Windows、Python3.11.5、MongoDB8.3.11单节点副本集rs0（27018）；FastAPI0.115.7、PyMongo4.19.0、Pydantic2.12.5、pytest8.4.2、Playwright1.64.0，使用真实Chromium。依赖版本见[source/requirements-lock.txt](../source/requirements-lock.txt)，虚拟环境没有继承系统包。
+测试在Windows、Python3.11.5和MongoDB8.3.11单节点副本集rs0环境下执行。后端使用FastAPI0.115.7、PyMongo4.19.0和Pydantic2.12.5；测试工具为pytest8.4.2、httpx与Playwright1.64.0，浏览器流程使用Chromium。
 
-|执行范围|实际结果|当前保留证据|
+项目采用独立虚拟环境，依赖版本见[requirements-lock.txt](../source/requirements-lock.txt)。集成测试使用随机survey_test_<uuid>数据库，各用例结束后清理自己的测试数据。
+
+## 执行结果
+
+|测试范围|结果|记录|
 |---|---|---|
-|全部现有及新增测试|113项通过，37.82秒；72单元、39数据库/API/并发、2浏览器|[full.txt](evidence/respondent-username/full.txt)、[full.xml](evidence/respondent-username/full.xml)|
+|完整功能验收|113项通过，37.82秒|[full.txt](evidence/respondent-username/full.txt)、[full.xml](evidence/respondent-username/full.xml)|
 |用户名修正新增测试|11项通过，7.02秒|[targeted.txt](evidence/respondent-username/targeted.txt)|
-|首次新增测试，Mongo未启动|4通过、7项setup errors，41.03秒；连接错误10061|[initial-no-mongo.txt](evidence/respondent-username/initial-no-mongo.txt)|
-|独立真实HTTP演示|22个请求检查PASS，包括预期403/409；不计入pytest113项|[final-http.json](evidence/final-http.json)|
-|Phase A数据库/规则阶段|72项通过，2.75秒|[phase-a.txt](evidence/phase-a.txt)|
-|Phase B API阶段|17项通过，14.90秒|[phase-b-api.txt](evidence/phase-b-api.txt)|
-|首次完整交付|102项通过，31.36秒|[final.txt](evidence/final.txt)，这是历史命名|
+|新增测试首次执行|4项通过、7项准备错误，41.03秒；MongoDB未启动|[环境错误](evidence/respondent-username/initial-no-mongo.txt)|
+|独立HTTP检查|22项请求检查通过|[final-http.json](evidence/final-http.json)|
+|数据库与规则阶段|72项通过，2.75秒|[phase-a.txt](evidence/phase-a.txt)|
+|API阶段|17项通过，14.90秒|[phase-b-api.txt](evidence/phase-b-api.txt)|
+|首次完整交付|102项通过，31.36秒|[final.txt](evidence/final.txt)|
 
-目录整理阶段另有102项通过（31.82秒）；旧浏览器/中间回归、目录检查及详细安装日志已精简，可在[对应提交](https://github.com/Luli3220/Dase_DataBase_Porject_I/tree/795c8b8c9a34ecf4275aa295325a201f3e1014de/docs/evidence)回溯。没有把被精简文件当作当前目录中的附件。
+各行对应不同阶段的执行结果。当前完整功能验收以113项为准，22项HTTP检查单独记录。
 
-## 覆盖内容
+## 测试范围
 
-- 课程六项：创建问卷、添加题目、跳转、校验、提交、统计；步骤、输入、预期和实际结果见[测试用例](test-cases.md)。
-- 权限/认证：注册、登录、退出、过期、复制Cookie撤销、CSRF、12类所有者越权操作和请求大小限制。
-- 版本/并发：草稿revision冲突、并发派生、冻结后发布恢复、关闭/切版与提交竞争、策略首份成功后锁定。
-- 答卷/统计：幂等、每次追加、latest_only跨版本先去重后筛选、multiple、分页、均值、单题与全卷一致。
-- 身份显示：非匿名新增注册用户名，匿名严格省略ID及用户名，双向跨版本保持提交快照；真实Mongo命令监听确认本页只执行一次去重用户查询，匿名/空页不查询。
-- 浏览器：编辑四类题和跳转规则、预览不入库、登录返回公开链接、非法输入提示、切换分支清除旧答案、重复填写、版本变化、关闭及390px手机表单。
+- **基本功能**：创建问卷、添加四类题目、条件跳转、答案校验、提交与统计。详细步骤和输入输出见[测试用例](test-cases.md)。
+- **身份与权限**：注册登录、会话过期、退出撤销、CSRF、12类管理越权操作和请求大小限制。
+- **版本与并发**：草稿修订冲突、并发派生、发布中断恢复、提交与关闭/切版竞争、首次提交后的策略锁定。
+- **答卷与统计**：幂等提交、追加保存、跨版本latest_only、multiple策略、分页、均值及单题/全卷一致性。
+- **用户名与匿名**：实名答卷展示用户名，历史匿名保持隐藏，关联账号缺失回退，当前页批量查询。
+- **浏览器流程**：编辑、预览、发布、登录返回、逐题填写、分支修改、重复填写、版本变化及390px手机表单。
 
-## 实际问题与修复
+## 问题处理
 
-1. conda db为Python3.10.21且启动器异常，依赖不全。使用独立3.11.5环境，关闭系统包继承，pip check通过。
-2. 沙箱pip网络异常、Docker daemon未运行、后台Mongo进程曾无法持续连接。调整依赖安装方式并使用常驻本机rs0，不以模拟数据库代替真实集成。
-3. 审查发现日期严格解析和极大整数转换的边界风险。仅允许必要的日期解析、仍拒绝无时区时间；数值先判断安全范围再判断有限性，加入10**1000用例。此项不虚称已经发生过测试失败。
-4. 页面曾直接显示选项ID和非匿名填写者ID。选项按历史版本映射标签；注册用户名通过当前页批量查询补充，继续按anonymousAtSubmission过滤，保持原ID兼容。
-5. 用户名修正的首次测试因Mongo未启动出现准备错误；复用原目录启动数据库后，新增11项和完整113项均通过。原始错误文本保留，没有改写为PASS。
+初期环境中的Python版本和依赖不一致，随后改用3.11.5独立环境并固定依赖；pip check通过。MongoDB后台进程曾无法持续连接，因此采用常驻本机副本集完成数据库测试。
 
-发布中断由测试主动注入，是预期故障恢复验证。更完整的需求/修改过程见[第一人称AI使用说明](ai-usage-log.md)。
+代码检查还发现了日期输入解析和极大整数判断的边界风险。修正后补充了无时区日期、非法数字及10**1000等用例。页面显示方面，选项由内部ID映射为对应版本的标签，非匿名填写者则通过批量查询显示注册用户名。
 
-## 界面证据与复现
+用户名修正首次测试因MongoDB未启动产生准备错误，数据库启动后新增11项及完整113项均通过。发布恢复测试采用故障注入，检查冻结后中断的版本能否继续完成发布。相关需求和修改过程见[AI使用说明](ai-usage-log.md)。
 
-只保留最新一轮的一组真实截图：[编辑器](evidence/respondent-username/editor.png)、[发布结果](evidence/respondent-username/published.png)、[统计界面](evidence/respondent-username/statistics.png)、[手机表单](evidence/respondent-username/mobile.png)。图片含随机测试账号，不是真实用户账号，亦不是合成截图。
+## 界面与复现
 
-在source目录、Mongo副本集及Chromium可用时执行：
+[问卷编辑](evidence/respondent-username/editor.png) · [发布结果](evidence/respondent-username/published.png) · [统计页面](evidence/respondent-username/statistics.png) · [手机表单](evidence/respondent-username/mobile.png)
+
+在source目录准备好Mongo副本集和Chromium后执行：
 
 ```powershell
 $env:TEST_EVIDENCE_DIR='../docs/evidence/respondent-username'
@@ -49,10 +51,8 @@ $env:TEST_EVIDENCE_DIR='../docs/evidence/respondent-username'
 ..\.venv\Scripts\python.exe -m scripts.build_evidence --index-only
 ```
 
-也可从仓库根运行source/scripts/run-tests.ps1。测试每例只清理本次随机分配的survey_test_库，不清空survey_dev。--index-only只从已有JUnit生成索引，不运行测试，也不要求Mongo在线。
+也可从仓库根运行source/scripts/run-tests.ps1。第二条命令读取JUnit并更新结果索引。
 
-## 未验证范围与文档维护
+## 后续验证
 
-Docker仅配置解析通过，容器构建/运行未验证；未单独运行Mongo7/8.0兼容性、公网HTTPS部署、多节点故障转移、容量压测或其他浏览器引擎。单节点副本集不代表高可用生产部署。
-
-2026-10-18报告核对只解析历史结果并收集当前113项；本次证据清理同样没有重新执行功能测试。清理将48个证据文件减少到15个，保留最新完整成功、必要阶段摘要和一份失败输出，删除重复格式及多轮相同页面截图；原始保留文件未改内容，旧文件可由Git历史找回。必要的索引工具和测试输出路径同步调整，业务代码及测试断言不变。
+本轮验证以本机环境为主。Docker已完成配置解析，后续还需验证容器运行、其他MongoDB版本和浏览器引擎的兼容性，并进一步评估公网HTTPS部署、容量及多节点故障恢复。

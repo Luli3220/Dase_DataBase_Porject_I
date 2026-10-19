@@ -1,16 +1,32 @@
-# 非匿名填写者用户名修正：实际验证
+# 非匿名答卷的用户名显示测试
 
-工作目录source，Python解释器../.venv/Scripts/python.exe。本目录保留当前113项完整验收、新增测试和错误记录，以及一组真实界面截图。
+本次修正在非匿名答卷中增加注册用户名展示，并检查历史匿名保护、跨版本统计和分页查询。
 
-|执行|实际结果|证据|
+## 执行结果
+
+|测试范围|结果|记录|
 |---|---|---|
-|首次新增测试，Mongo未运行|4 passed / 7 setup errors，41.03秒；WinError10061|[首次输出](initial-no-mongo.txt)|
-|复用原Mongo目录启动rs0后重跑新增测试|11 passed / 0 failed / 0 errors / 0 skipped，7.02秒|[输出](targeted.txt)|
-|全部现有及新增测试|113 passed / 0 failed / 0 errors / 0 skipped，37.82秒|[输出](full.txt)、[JUnit](full.xml)|
-|JavaScript语法检查|node --check app/static/app.js，exit0|本轮实际执行|
-|依赖检查|No broken requirements found|本轮实际执行|
+|新增测试首次执行|4项通过、7项准备错误，41.03秒；MongoDB未启动|[错误输出](initial-no-mongo.txt)|
+|启动数据库后重跑新增测试|11项通过，7.02秒|[执行输出](targeted.txt)|
+|完整回归|113项通过，37.82秒|[执行输出](full.txt)、[JUnit](full.xml)|
 
-命令：
+## 测试内容
+
+新增11个实例包括3个响应字段测试、4个API匿名/实名组合、2个跨版本测试、1个批量查询测试和1个关联用户缺失测试。
+
+主要验证内容如下：
+
+- 非匿名记录返回respondentId和respondentUsername；匿名记录隐藏这两个字段。
+- V1与V2使用各自提交时的匿名设置，版本切换后历史答卷的身份展示保持一致。
+- 当前页的用户ID去重后一次查询，读取字段为_id和username；空页及匿名页无需查询用户。
+- 关联账号缺失时，用户名返回null，页面回退显示原ID。
+- 浏览器页面优先展示注册用户名，查看旧匿名版本时继续显示“匿名”。
+
+完整回归包括72项单元、39项数据库/API及2项浏览器测试。批量查询通过真实MongoDB命令监听检查，用户查询与答卷聚合使用同一事务。
+
+## 复现命令
+
+在source目录执行：
 
 ```powershell
 ..\.venv\Scripts\python.exe -m pytest tests/unit/test_owner_submission.py tests/integration/test_respondent_usernames.py -q
@@ -18,8 +34,4 @@ $env:TEST_EVIDENCE_DIR='../docs/evidence/respondent-username'
 ..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/evidence/respondent-username/full.xml
 ```
 
-11个新增实例包括3个DTO身份白名单、4个API匿名/实名与口径组合、2个双向跨版本隐私、1个真实Mongo批量命令监听、1个用户缺失回退。完整113项包括72单元、39数据库/API/并发、2浏览器实例。现有浏览器流程新增断言：V2实名答卷显示注册用户名而非ID；V1历史匿名答卷既无用户名也无ID。
-
-命令监听验证分页3份答卷只调用一次users.find，$in仅含当前页非匿名去重用户ID，projection仅_id/username，使用与答卷聚合同一事务；空页和匿名页0次用户名查询。首次数据库不可用属于真实环境错误，未删去或伪装成通过；启动Mongo后没有修改功能代码即通过重跑。
-
-兼容性：非匿名增加可空respondentUsername，原respondentId保留；匿名仍省略二者。用户名为读取时users.username，账号缺失时null，前端回退原ID。无集合、Schema、索引、规则或统计口径变更，无数据迁移。
+此次修正保留原respondentId，用户名在读取时从users补充。数据库结构与统计口径沿用原有设计。

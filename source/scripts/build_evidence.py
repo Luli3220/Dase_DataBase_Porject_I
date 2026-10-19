@@ -1,4 +1,4 @@
-"""Build reproducible evidence indices from actual JUnit output; never fabricate passes."""
+"""Build the test result index and environment metadata from JUnit output."""
 import json
 import argparse
 import platform
@@ -22,7 +22,7 @@ def main():
     tree=ET.parse(report)
     cases=tree.findall('.//testcase')
     counts={'PASS':0,'FAIL':0,'SKIP':0}
-    lines=['# 逐项真实执行结果','',f'来源：[完整JUnit](respondent-username/full.xml)；从已有{len(cases)}项验收记录生成索引，未重新执行测试。每个参数化实例独立记录。测试步骤、输入与断言在对应测试源文件，业务摘要见 [测试用例](../test-cases.md)。','','|编号|测试（源模块/名称）|实际结果|耗时秒|','|---|---|---|---|']
+    lines=['# 逐项测试结果','',f'来源：[完整JUnit](respondent-username/full.xml)，共{len(cases)}个测试实例。表中列出测试名称、结果和耗时，详细步骤见[测试用例](../test-cases.md)。','','|编号|测试（源模块/名称）|实际结果|耗时秒|','|---|---|---|---|']
     for i,c in enumerate(cases,1):
         status='SKIP' if c.find('skipped') is not None else 'FAIL' if c.find('failure') is not None or c.find('error') is not None else 'PASS'
         counts[status]+=1

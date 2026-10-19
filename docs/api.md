@@ -1,6 +1,8 @@
 # API 规范（1.0.0）
 
-本机基础地址http://127.0.0.1:8000；运行时/docs为交互文档，/openapi.json为机器规范，交付快照docs/openapi.json。JSON camelCase，ID字符串，时间带Z或时区，数据库UTC。未知字段拒绝。改变状态的已登录请求必须Cookie+X-CSRF-Token；注册/登录返回csrfToken，GET /api/me可读取。拒绝浏览器显式外域Origin。
+本机基础地址为http://127.0.0.1:8000，运行时可通过/docs查看交互文档，接口定义见[openapi.json](openapi.json)。
+
+请求和响应采用camelCase字段名，ObjectId以字符串表示，时间使用带时区的ISO8601格式，数据库统一保存UTC。注册或登录后，客户端通过Cookie维持会话；修改状态的请求还需携带X-CSRF-Token。令牌由认证响应或GET /api/me获取，服务端同时校验请求Origin及输入字段。
 
 |方法/路径|权限|输入/返回|
 |---|---|---|
@@ -45,7 +47,7 @@ POST /api/surveys：
 ]}
 ```
 
-保存后revision=1；publish传`{"expectedRevision":1}`。发布后sealed不可编辑，先派生新草稿。冻结中断后同revision再publish完成指针切换，公开端不读取半发布版。完整四题跳转数据在tests/fixtures.py。
+保存后revision为1，发布请求传`{"expectedRevision":1}`。发布将版本冻结为sealed，后续修改通过派生新草稿完成。若冻结后发生中断，使用相同revision重试publish即可继续切换公开指针。完整四题示例见[tests/fixtures.py](../source/tests/fixtures.py)。
 
 ## 提交、幂等与版本
 
@@ -55,7 +57,7 @@ POST /api/surveys：
 
 201为`{"id":"<submissionObjectId>","replayed":false,"surveyVersion":1}`。相同逻辑请求重试沿用UUID和内容，返回同id及replayed:true；新填写新UUID。摘要包含版本及按questionId排序的原始答案JSON，因此空白/多选排列等改变也可能409，应重发相同body。作用域survey+respondent，认证身份由服务器写入，伪造respondentId等额外字段422。
 
-已有成功请求在关闭/切版后重试仍返回原记录（不产生新记录）；新requestId按当前状态版本验证。旧表单版本不等于公开指针时409 SURVEY_VERSION_CHANGED，不能偷偷转换答案。
+问卷关闭或切版后，已成功请求的重试仍返回原记录。新的requestId按当前状态与版本校验，旧表单版本与公开版本不一致时返回409 SURVEY_VERSION_CHANGED，页面提示重新获取问卷。
 
 公开DTO为publicId/title/description/deadlineAt/surveyVersion/settings/questions/submissionPolicy，不含ownerId、draftVersion或历史答卷。后台独立重算路径，拒绝重复题ID、无效路径答案、非法选项/类型/范围；仅保存规范化的有效答案。
 
@@ -69,7 +71,9 @@ version省略明确采用publishedVersion。统计mode默认current_effective；
  "questions":[{"questionId":"age","title":"年龄","type":"number","answeredCount":1,"values":[20],"offset":0,"limit":50,"mean":20.0}]}
 ```
 
-选择题返回options:[{id,label,count}]；多选计数和可超过回答人数。文本/数字values分页（offset默认0，limit默认50，1..100），均值和人数始终基于全部选中答卷，无数字mean:null。答卷列表独立分页。匿名记录只含id/surveyVersion/anonymous/answers/submittedAt，绝不包含respondentId或respondentUsername；非匿名额外返回respondentId和respondentUsername，不返回requestId、摘要或内部文档。
+选择题返回options:[{id,label,count}]，多选题各选项次数之和可能大于回答人数。文本和数字values分页展示，offset默认0，limit默认50、范围1..100；均值和回答数按全部选中答卷计算，数字为空时mean为null。
+
+答卷列表独立分页。匿名记录包含id、surveyVersion、anonymous、answers和submittedAt，非匿名记录增加respondentId和respondentUsername；幂等键和摘要由服务端内部使用。
 
 `GET /api/surveys/{surveyId}/submissions`的非匿名身份示例：
 
@@ -77,7 +81,7 @@ version省略明确采用publishedVersion。统计mode默认current_effective；
 {"id":"<submissionObjectId>","surveyVersion":2,"anonymous":false,"respondentId":"<userObjectId>","respondentUsername":"reader_actual","answers":[],"submittedAt":"2026-10-16T00:00:00Z"}
 ```
 
-respondentUsername来自users.username，为查询时的注册用户名，属于读取时派生字段，不写入submissions。服务只对当前页非匿名答卷的去重用户ID执行一次批量查询，且与答卷列表共用snapshot事务；全匿名页/空页不查询用户名。若关联账号缺失，非匿名记录的respondentUsername为null，保留原respondentId，网页优先显示用户名、缺失时回退ID。此为兼容性新增字段，不改变分页、统计或提交格式。
+respondentUsername来自users.username，服务端在同一snapshot事务中批量查询当前页的非匿名用户。全匿名页和空页直接返回列表。若关联账号缺失，respondentUsername为null，网页回退显示原respondentId。
 
 身份可见性只取决于每份答卷的anonymousAtSubmission；即使公开版本已改为非匿名，旧匿名记录也不返回两个身份字段；后续改为匿名也不反向修改已有非匿名承诺。统计接口依旧不包含账号身份。
 
@@ -91,7 +95,6 @@ Cookie survey_session：HttpOnly、SameSite=Lax、max-age28800，生产Secure。
 
 |状态|含义|
 |---|---|
-|400|常规业务输入统一422，不使用400|
 |401|UNAUTHENTICATED / INVALID_CREDENTIALS / SESSION_EXPIRED|
 |403|FORBIDDEN / CSRF_FAILED|
 |404|NOT_FOUND：问卷/题目/版本不存在或尚未公开|

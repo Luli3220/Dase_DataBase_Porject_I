@@ -8,7 +8,7 @@
 
 | 材料 | 主要内容 |
 |---|---|
-| [正式实验报告](report/DataBase_Project_1.pdf) | 项目总体设计、功能实现、测试结果与总结 |
+| 实验报告（课程平台提交） | 项目总体设计、功能实现、测试结果与总结，附本仓库链接 |
 | [ChatGPT 讨论记录](https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816) | 前期需求分析、数据库模型比较及技术讨论 |
 | [开发 Prompt](../prompts/README.md) | 总控 Prompt 与三个阶段的开发要求 |
 | [项目源码](../source/app/)与[测试代码](../source/tests/) | 系统实现及自动化测试 |
