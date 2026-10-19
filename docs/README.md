@@ -29,9 +29,8 @@ AI前期讨论入口：[作者提供的ChatGPT分享记录](https://chatgpt.com/
 |正式报告与技术附件|本页上方7个入口|提交/复核的主要内容|
 |机器可读附件|[openapi.json](openapi.json)、[delivery-manifest.json](delivery-manifest.json)|按需查接口或文件校验，不是额外报告|
 |设计决策|[事务/发布恢复](adr/001-consistency.md)、[歧义澄清](adr/002-clarifications.md)|需要追问设计原因时再读|
-|过程档案|[实施计划](archive/implementation-plan.md)、[目录整理](archive/repository-layout.md)、[GitHub提交](archive/repository-submission.md)、[旧自动完成记录](archive/project-report.md)|历史材料，非当前正式报告，不必按顺序通读|
 |原始执行证据|evidence/中的txt/xml/json/log/png|用于复核结论，不是几十份独立文档|
 
-整理前盘点为63个文件，其中46个是执行日志、截图或证据索引，约1.69MiB。存在内容主题重叠和多轮截图，但主要是“摘要—详细规范—原始证据”的分层；本次将4份过程文档归档、统一最新版本入口，没有删除PDF已引用的路径或失败记录。
+旧阶段计划、自动完成报告、目录迁移和GitHub提交过程说明不再单独保留，其必要信息已由正式报告、运行手册、AI说明及测试报告覆盖。旧版本可从Git历史回溯；PDF已引用的证据路径和失败记录保留。
 
 原始课程要求与开发规格分别见 [requirements/](../requirements/README.md) 和 [prompts/](../prompts/README.md)。正式报告、代码和附件应一并提交；若只交PDF，其API、配置及详细测试步骤需另补附件。

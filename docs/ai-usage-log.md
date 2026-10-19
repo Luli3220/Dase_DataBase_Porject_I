@@ -31,13 +31,13 @@ ChatGPT分享页与Coding Agent的实施记录不是同一个证据入口：前�
 
 |编号/输入来源|实际任务/Prompt|得到的实现|修改或约束落实|验证入口|
 |---|---|---|---|---|
-|P0：用户首轮要求 + [总控原文](../prompts/00-总控Prompt.md)|准确短引：“请直接创建真实可运行的代码，不要只输出方案或伪代码”；要求A→B→C逐阶段执行测试|可运行项目、实施顺序、分层结构|业务数据仅MongoDB；每阶段先验收再继续|阶段日志及[实施计划历史](archive/implementation-plan.md)|
+|P0：用户首轮要求 + [总控原文](../prompts/00-总控Prompt.md)|准确短引：“请直接创建真实可运行的代码，不要只输出方案或伪代码”；要求A→B→C逐阶段执行测试|可运行项目、实施顺序、分层结构|业务数据仅MongoDB；每阶段先验收再继续|[阶段验收与执行记录](evidence/README.md)|
 |P1：[数据库与规则原文](../prompts/01-数据库与规则引擎.md)|四集合、BSON、版本指针/冻结、匿名、重复、声明式跳转、固定fixture|[Schema/索引](../source/app/db/mongo.py)、[文档模型](../source/app/models/documents.py)、[规则引擎](../source/app/rules/engine.py)、[问卷服务](../source/app/services/surveys.py)|事务处理跨集合写；revision CAS；先冻结后切指针；路径复核和幂等唯一索引|[Phase A](evidence/phase-a.txt)：72通过|
 |P2：[API与网页原文](../prompts/02-后端API与网页.md)|注册登录、ownership、公开填写、可视化编辑/预览、版本/统计界面|[认证](../source/app/services/auth.py)、[API](../source/app/api/routes.py)、[网页](../source/app/static/app.js)|签名Cookie/CSRF、明确匿名DTO、日期输入解析、分支答案清除、重试沿用UUID|[API阶段](evidence/phase-b-api.txt)：17通过；[HTTP](evidence/final-http.json)：22项PASS|
 |P3：[测试与验收原文](../prompts/03-测试文档与验收.md)|真实Mongo、权限/版本/并发/匿名/统计/边界、步骤与输入输出、文档和AI日志|[unit/integration/web测试](../source/tests/)、[用例](test-cases.md)、[报告](test-report.md)|增加极大整数、退出撤销、分块请求、统计snapshot；保留真实错误和未验证项|[首次完整](evidence/final.txt)：102通过|
 |P4：用户目录整理要求|准确短引：“prompt可以放一个目录，然后source可以放一个目录……做好索引”|requirements/prompts/source/docs及各README|修正脚本工作目录、证据与打包根路径；保留Mongo数据及原材料|[目录迁移](evidence/restructure/README.md)：102通过|
 |P5：用户名修正要求|准确短引：“为非匿名答卷增加respondentUsername字段，数据来自users.username”；要求批量、历史匿名、最小修改|[owner_submission/list_owner](../source/app/services/submissions.py)、网页身份显示、[新增测试](../source/tests/integration/test_respondent_usernames.py)|当前页去重ID的一次users.find；仅非匿名输出用户名；缺失为null保留ID；架构/规则/统计不改|[新增11项及完整113项](evidence/respondent-username/README.md)|
-|P6：用户最终报告核对要求|本次输入摘要：按原始PDF检查完成报告、解释docs内容、明确AI使用并加入分享索引|[逐项核对](requirements-traceability.md)、本文、文档/证据总索引、4份历史文档归档|正式PDF原样收录；修正最新113/历史102定位；不改业务代码、不改写历史执行结果|2026-10-18逐页阅读与测试收集113项；不是功能测试重跑|
+|P6：用户最终报告核对要求|本次输入摘要：按原始PDF检查完成报告、解释docs内容、明确AI使用并加入分享索引|[逐项核对](requirements-traceability.md)、本文、文档/证据总索引|正式PDF原样收录；修正最新113/历史102定位；不改业务代码、不改写历史执行结果|2026-10-18逐页阅读与测试收集113项；不是功能测试重跑|
 
 ## 4. 方案取舍与AI实现问题分别记录
 
@@ -64,6 +64,8 @@ ChatGPT分享页与Coding Agent的实施记录不是同一个证据入口：前�
 |功能修正[744a4d2](https://github.com/Luli3220/Dase_DataBase_Porject_I/commit/744a4d298e4e0ae779c8bee421aba6d7ae6f7ff3)|新增11项通过；完整113项通过，37.82秒|[full.txt](evidence/respondent-username/full.txt)、[full.xml](evidence/respondent-username/full.xml)|
 
 113项为72单元、39真实数据库/API/并发、2浏览器实例；不同阶段数量不能相加为一个“总测试数”。22项HTTP检查独立于pytest。2026-10-18核对了原始XML及当前测试收集的113项，没有重新运行功能测试，也没有把旧记录的日期更新为今天。
+
+2026-10-19按作者要求删除4份重复的过程档案，清理文档引用并更新交付清单；不改代码或测试，旧内容保留在Git历史。
 
 ## 6. 结论与未验证范围
 

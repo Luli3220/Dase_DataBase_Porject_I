@@ -17,33 +17,13 @@
     },
     {
       "path": "docs/ai-usage-log.md",
-      "sha256": "6e78a99f0db643eec970f98c7956e35dce2cdba7c912ae51f2b50b2eac43be21",
-      "bytes": 10291
+      "sha256": "8276dccb96490c6515127408c434aa68e0ff315621c461f9903cc03ce48e7235",
+      "bytes": 10405
     },
     {
       "path": "docs/api.md",
       "sha256": "ca4c3cac0fea1cb072db262f2304b7a7f713fdcf4763ab695ac939c5021eb471",
       "bytes": 7964
-    },
-    {
-      "path": "docs/archive/implementation-plan.md",
-      "sha256": "dc18dc7ba33203c2993ac31691da94ffcb80e46165ea4a33b69b074c6bce2cad",
-      "bytes": 1727
-    },
-    {
-      "path": "docs/archive/project-report.md",
-      "sha256": "f706be1d74478b4c0b9a21d48afd9cacf4cc356f81bfa1a896f5cc7bb19cc98d",
-      "bytes": 7535
-    },
-    {
-      "path": "docs/archive/repository-layout.md",
-      "sha256": "509ab4f05168ddc5b633dd63934ffcce9fa1acf118d2ebdad4bd5ea6a1265257",
-      "bytes": 1856
-    },
-    {
-      "path": "docs/archive/repository-submission.md",
-      "sha256": "7035764b6949fe7c67f32aa1bc8a8819f2acd2eaed34f89451ee675ad52c4e82",
-      "bytes": 1368
     },
     {
       "path": "docs/database-design.md",
@@ -297,8 +277,8 @@
     },
     {
       "path": "docs/README.md",
-      "sha256": "8f3307547b743a0cb8df8d745278622be9532949d54374744944bb022378e5de",
-      "bytes": 3576
+      "sha256": "209a7d8b17c77d2bda68ba99f37f4ce8aa5a3fb9335eaabbacc9400fb2f4b41d",
+      "bytes": 3250
     },
     {
       "path": "docs/report/DataBase_Project_1.pdf",
@@ -367,8 +347,8 @@
     },
     {
       "path": "README.md",
-      "sha256": "3a7161767a45d83cc6af83f87ceee8c1d77f5c06ebd4378cfc53ccebb6b81b66",
-      "bytes": 3352
+      "sha256": "e21208f3b9aa71aac122c7853aa81de7b4b0d00179614f877b6dc8e99d884259",
+      "bytes": 3277
     },
     {
       "path": "requirements/project1.pdf",

@@ -27,7 +27,6 @@ Project1/
 └── docs/
     ├── README.md             # 文档导航
     ├── report/               # 作者完成的正式PDF报告
-    ├── archive/              # 旧完成记录与开发过程档案
     ├── adr/                  # 设计决策
     └── evidence/             # 真实测试结果与截图
 ```
