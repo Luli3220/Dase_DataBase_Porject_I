@@ -80,14 +80,14 @@ Docker配置见[docker-compose.yml](docker-compose.yml)与[Dockerfile](Dockerfil
 
 # 首次安装Chromium；也可设置PLAYWRIGHT_CHROMIUM_EXECUTABLE使用已有浏览器
 ..\.venv\Scripts\python.exe -m playwright install chromium
-$env:TEST_EVIDENCE_DIR='../docs/evidence/respondent-username'
-..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/evidence/respondent-username/full.xml
+$env:TEST_EVIDENCE_DIR='../docs/project2/evidence'
+..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/project2/evidence/full.xml
 ..\.venv\Scripts\python.exe -m scripts.build_evidence --index-only
 ```
 
 从仓库根运行`source/scripts/run-tests.ps1`也可执行完整测试。单元测试可独立运行；集成测试使用27018副本集；浏览器测试自动在8001启动临时服务。测试数据库采用随机survey_test_<uuid>名称，各用例结束后清理自己的测试库。
 
-完整验收结果为113项通过，详见[测试报告](../docs/test-report.md)与[逐项记录](../docs/evidence/case-results.md)。
+第一阶段历史验收为113项通过，原记录保留。第二阶段实际全套结果见[独立测试报告](../docs/project2/test-report.md)与[逐项记录](../docs/project2/evidence/case-results.md)。
 
 ## 5. 演示流程
 
@@ -110,3 +110,25 @@ $env:TEST_EVIDENCE_DIR='../docs/evidence/respondent-username'
 |[项目文档](../docs/README.md)|系统、数据库、接口和测试说明|
 
 Linux/macOS可在仓库根创建.venv，进入source后使用`../.venv/bin/python`执行相同模块命令。
+
+
+## 7. 第二阶段升级与演示
+
+从已有 Project1 数据库继续运行，先停止业务写入并备份。保持原 .env，运行：
+
+```powershell
+..\.venv\Scripts\python.exe -m scripts.migrate_project2
+..\.venv\Scripts\python.exe -m scripts.migrate_project2
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+升级仅安装七集合验证器和索引，输出原四集合前后文档指纹；重复执行仍不改写旧数据。首次启动本身也执行幂等 initialize。若 Mongo 由临时执行宿主启动后退出，可在单独终端前台运行 `mongod --dbpath <仓库绝对路径>/.local/mongo --port 27018 --bind_ip 127.0.0.1 --replSet rs0`，保留该终端；不要再启动第二个相同数据目录的进程。
+
+1. 两个浏览器会话分别注册 A/B。A 在“题目”创建年龄题 v1，按 B 的用户名共享。
+2. A 创建题库，从可用题目选择 v1；题库成员可固定版本，或在选题时使用最新版本。
+3. A/B 创建不同问卷，点击“从题库添加题目”，搜索/预览并选择具体版本；保存、发布、填写。
+4. A 创建 v2，再从 v1 恢复为 v3。旧问卷仍显示 v1；新草稿可显式替换版本，或解除关联编辑本地副本。
+5. 题目页查看所选版本的使用关系和统计，切换 mine/已授权贡献、当前有效/历史原始。B 在问卷编辑页显式开启贡献，外部每份问卷至少3份实际回答才参与共享统计。撤销后新查询排除。
+6. 共享撤销/归档后旧问卷可继续填写，新引用被拒绝。原问卷统计仍可看自己拥有的数据和按历史匿名快照过滤的答卷。
+
+完整回归：`./scripts/run-tests.ps1`。新增测试：`../.venv/Scripts/python.exe -m pytest tests/project2 -q`。不要将本阶段输出写入 `docs/evidence`；当前脚本已默认写入 `docs/project2/evidence`。迁移/回滚详细限制见 [migration.md](../docs/project2/migration.md)。

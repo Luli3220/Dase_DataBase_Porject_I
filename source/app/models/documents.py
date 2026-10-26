@@ -2,7 +2,7 @@
 from typing import Literal
 from bson import ObjectId
 from pydantic import ConfigDict, Field, AwareDatetime
-from app.models.domain import StrictModel, Question, VersionSettings, Answer
+from app.models.domain import StrictModel, Question, VersionSettings, Answer, QuestionContent
 
 
 class Document(StrictModel):
@@ -13,7 +13,7 @@ class Document(StrictModel):
     def to_bson(self):
         result=self.model_dump(by_alias=True)
         if hasattr(self,'questions'):
-            result['questions']=[q.model_dump(exclude_none=True) for q in self.questions]
+            result['questions']=questions_to_bson([q.model_dump(exclude_none=True) for q in self.questions])
         return result
 
 
@@ -25,6 +25,7 @@ class UserDocument(Document):
 
 
 class SurveyDocument(Document):
+    statisticsContribution: bool = False
     ownerId: ObjectId
     publicId: str
     title: str
@@ -60,3 +61,45 @@ class SubmissionDocument(Document):
     payloadDigest: str
     submittedAt: AwareDatetime
     answers: list[Answer] = Field(max_length=100)
+
+
+def questions_to_bson(questions):
+    from copy import deepcopy
+    result = deepcopy(questions)
+    for question in result:
+        if question.get('source'):
+            question['source']['questionId'] = ObjectId(question['source']['questionId'])
+    return result
+
+
+class QuestionDefinitionDocument(Document):
+    ownerId: ObjectId
+    currentVersion: int = Field(ge=1)
+    visibility: Literal['private', 'shared'] = 'private'
+    sharedWith: list[ObjectId] = Field(default_factory=list, max_length=100)
+    forkedFrom: dict | None = None
+    archived: bool = False
+    revision: int = Field(default=0, ge=0)
+    createdAt: AwareDatetime
+    updatedAt: AwareDatetime
+
+
+class QuestionVersionDocument(Document):
+    questionId: ObjectId
+    version: int = Field(ge=1)
+    parentVersion: int | None = None
+    changeType: Literal['create', 'update', 'restore']
+    restoredFromVersion: int | None = None
+    content: QuestionContent
+    createdBy: ObjectId
+    createdAt: AwareDatetime
+
+
+class QuestionBankDocument(Document):
+    ownerId: ObjectId
+    name: str
+    description: str
+    items: list[dict] = Field(default_factory=list, max_length=200)
+    revision: int = Field(default=0, ge=0)
+    createdAt: AwareDatetime
+    updatedAt: AwareDatetime

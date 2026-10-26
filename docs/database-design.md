@@ -1,6 +1,8 @@
 # MongoDB 数据库设计
 
-系统使用MongoDB保存业务数据，由users、surveys、survey_versions和submissions四个集合组织账号、问卷、内容版本及填写记录。初始化代码位于`source/app/db/mongo.py`，通过`$jsonSchema`约束必填字段、BSON类型和数组规模。题型规则由Pydantic模型与业务校验器处理，已发布内容的冻结由服务层状态检查和CAS更新实现。
+当前规范：Project 2 / 七集合。第一阶段原貌可由 Git Tag `project1-baseline-61e2263` 恢复；本阶段演进论证见 [database-evolution](project2/database-evolution.md)。
+
+系统使用MongoDB保存业务数据，保留users、surveys、survey_versions和submissions四个集合组织账号、问卷、内容版本及填写记录，并增量加入question_definitions、question_versions和question_banks。初始化代码位于`source/app/db/mongo.py`，通过`$jsonSchema`约束必填字段、BSON类型和数组规模。题型规则由Pydantic模型与业务校验器处理，已发布内容的冻结由服务层状态检查和CAS更新实现。
 
 ## 四集合与类型
 
@@ -56,3 +58,41 @@ schemaVersion=文档格式；version/surveyVersion=问卷内容，不混用。�
 重复策略位于 surveys，首份成功答卷事务设置 hasSubmissions。每次新 requestId 追加，重试相同内容返回原 ID；同键不同内容409。historical_raw 展示指定版本全部记录；current_effective 在全卷选最新或全部，再按版本统计。
 
 事务和发布恢复的设计依据见[ADR 001](adr/001-consistency.md)。初始化脚本支持重复执行，测试库使用独立的survey_test_命名空间。
+
+
+## 题目复用的三个新集合
+
+|集合|BSON 字段与职责|
+|---|---|
+|question_definitions|_id/ownerId:ObjectId；currentVersion:int；visibility:private/shared；sharedWith:ObjectId[≤100]；forkedFrom:{questionId:ObjectId,questionVersion:int}或null；archived:bool；revision:int；createdAt/updatedAt:date；schemaVersion=1。稳定身份及访问控制，不嵌入历史数组。|
+|question_versions|questionId:ObjectId；version:int；parentVersion:int或null；changeType:create/update/restore；restoredFromVersion:int或null；content:{type,title,required,options,validation}；createdBy:ObjectId；createdAt:date；schemaVersion=1。独立、追加式不可变内容。|
+|question_banks|ownerId:ObjectId；name/description:string；items:[{questionId:ObjectId,pinnedVersion?:int}]≤200；revision:int；createdAt/updatedAt:date；schemaVersion=1。个人题库持有引用，不复制内容。|
+
+原 `survey_versions.questions[]` 增加可选 `source:{questionId:ObjectId,questionVersion:int}`，原 `surveys` 增加可选 `statisticsContribution:bool`，缺省视为 false。旧文档无 source 完全合法，schemaVersion 继续为 1；没有扫描并改写冻结版本或答卷。网络中 ObjectId 均为字符串，持久化统一转换为 BSON ObjectId。
+
+```mermaid
+erDiagram
+ users ||--o{ surveys : owns
+ surveys ||--o{ survey_versions : snapshots
+ surveys ||--o{ submissions : receives
+ users ||--o{ question_definitions : owns
+ question_definitions ||--|{ question_versions : versions
+ users ||--o{ question_banks : owns
+ question_banks }o--o{ question_definitions : references
+ question_versions ||--o{ survey_versions : pinned_source
+ survey_versions ||--o{ submissions : interprets
+```
+
+`questions[].id` 是问卷局部实例 ID，`source.questionId` 是跨问卷稳定身份。导入生成新局部 ID 并物化完整内容；原填写、提交、单问卷统计继续读取快照，不查询最新题目。每份问卷版本至多引用同一全局题目一次。显式替换保留局部 ID 以维持入边，清空本题出边并重新验证整卷。修改关联题核心内容会返回 SOURCE_MISMATCH；解除关联后成为普通本地题。问卷路由可独立编辑，题库版本禁止 routingRules。
+
+版本分配使用事务内 currentVersion CAS 加一和唯一索引，不使用 count()+1。parentVersion 可指向同题任意旧版；恢复复制旧内容追加版本，并记录 restoredFromVersion。fork 创建新身份，跨题来源存定义的 forkedFrom。归档禁止新引用而保留历史；共享撤销不改变已导入内容。服务没有更新/删除 question_versions 的公开写入路径；Mongo 管理员权限不受应用层不可变性保证。
+
+新增索引：definitions(ownerId,updatedAt DESC)、definitions(sharedWith)、versions(questionId,version) 唯一、banks(ownerId,updatedAt DESC)、survey_versions(questions.source.questionId,questions.source.questionVersion)。最后一个索引的两个键经过同一 questions 数组，合法；查询使用同一个 $elemMatch 绑定身份和版本，避免跨元素误配。新索引增加存储与写放大；没有永久增长的 usedBy 数组或冗余反向关系集合。
+
+## 跨问卷聚合与授权
+
+精确 questionId+questionVersion 关联版本快照与局部答案。先过滤授权问卷，再按每份问卷自身策略在全部问卷版本中选最新答卷，随后匹配固定题目版本；multiple/historical_raw 保留每份提交。MongoDB 内完成 $lookup、$filter、$group、$facet；应用不加载全部答案再计算。原单问卷统计模块保持原实现。
+
+mine 仅自己的问卷；consented_shared 额外包含 statisticsContribution=true 的问卷。每份外部问卷在当前口径下实际回答数不足 3 时整体抑制，撤销贡献立即在新查询中排除。跨问卷接口不返回账号、原始文本、完整答卷或外部问卷 ID；题目共享不授予答卷权限。反向使用查询显示自己的全部版本及当前可公开访问版本，不披露他人私有问卷数量或名称。
+
+统计单位为提交次数而非跨问卷独立人数；submissionCount 包括目标题所在快照的所选答卷，answeredCount 只计实际存在的答案，跳题不计。数字分桶为 (-∞,0)、[0,18)、[18,30)、[30,45)、[45,60)、[60,121)、[121,+∞)，分母为 answeredCount；支持负数、小数、安全极值；空样本均值 null。不同版本绝不因标题相同合并。当前为逐次实时聚合，未实施预聚合缓存或大规模容量承诺。

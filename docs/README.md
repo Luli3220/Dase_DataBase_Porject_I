@@ -8,10 +8,12 @@
 |---|---|
 |[需求对应表](requirements-traceability.md)|课程要求与报告章节、代码和测试的对应关系|
 |[系统设计](system-design.md)|模块划分、数据流、身份认证与并发处理|
-|[数据库设计](database-design.md)|四集合模型、BSON字段、嵌入与引用、索引和版本管理|
+|[数据库设计](database-design.md)|七集合模型、BSON字段、嵌入与引用、索引和版本管理|
 |[规则说明](rule-specification.md)|题型、校验条件、跳转规则和填写路径|
 |[API文档](api.md)|接口、请求示例、返回字段和错误码|
 |[AI使用说明](ai-usage-log.md)|前期讨论、Prompt、代码产物、问题修正与个人参与|
+
+第一阶段历史证据见下表；第二阶段材料集中在 [project2/](project2/README.md)，现行系统、数据库和 API 规范仍在原路径维护。
 
 ## 运行与测试
 

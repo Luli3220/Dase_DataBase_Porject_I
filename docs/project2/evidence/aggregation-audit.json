@@ -1,0 +1,231 @@
+{
+  "seededSubmissions": 1000,
+  "result": {
+    "questionId": "6adf0598a1ffa19a2a56e98c",
+    "questionVersion": 1,
+    "scope": "mine",
+    "mode": "current_effective",
+    "type": "number",
+    "surveyCount": 1,
+    "submissionCount": 1000,
+    "answeredCount": 1000,
+    "countUnit": "submission (not unique people across surveys)",
+    "exclusions": {
+      "unconsented": "other private survey data excluded by default",
+      "suppressedSurveyCount": 0,
+      "minimumSharedSample": 3,
+      "differentVersions": "only exact source version included; no title-based merge"
+    },
+    "mean": 499.5,
+    "distribution": [
+      {
+        "lower": null,
+        "upper": 0,
+        "count": 0
+      },
+      {
+        "lower": 0,
+        "upper": 18,
+        "count": 18
+      },
+      {
+        "lower": 18,
+        "upper": 30,
+        "count": 12
+      },
+      {
+        "lower": 30,
+        "upper": 45,
+        "count": 15
+      },
+      {
+        "lower": 45,
+        "upper": 60,
+        "count": 15
+      },
+      {
+        "lower": 60,
+        "upper": 121,
+        "count": 61
+      },
+      {
+        "lower": 121,
+        "upper": null,
+        "count": 879
+      }
+    ],
+    "interval": "[lower, upper), null means unbounded; denominator=answeredCount"
+  },
+  "executionStats": {
+    "executionSuccess": true,
+    "nReturned": 1,
+    "executionTimeMillis": 0,
+    "totalKeysExamined": 1,
+    "totalDocsExamined": 1,
+    "executionStages": {
+      "isCached": false,
+      "stage": "FETCH",
+      "filter": {
+        "questions": {
+          "$elemMatch": {
+            "$and": [
+              {
+                "source.questionId": {
+                  "$eq": "6adf0598a1ffa19a2a56e98c"
+                }
+              },
+              {
+                "source.questionVersion": {
+                  "$eq": 1
+                }
+              }
+            ]
+          }
+        }
+      },
+      "nReturned": 1,
+      "executionTimeMillisEstimate": 0,
+      "works": 2,
+      "advanced": 1,
+      "needTime": 0,
+      "needYield": 0,
+      "saveState": 0,
+      "restoreState": 0,
+      "isEOF": 1,
+      "nss": "survey_test_6ab0d862e5894639b5cf72dc81d9f4cd.survey_versions",
+      "docsExamined": 1,
+      "alreadyHasObj": 0,
+      "inputStage": {
+        "stage": "IXSCAN",
+        "nReturned": 1,
+        "executionTimeMillisEstimate": 0,
+        "works": 2,
+        "advanced": 1,
+        "needTime": 0,
+        "needYield": 0,
+        "saveState": 0,
+        "restoreState": 0,
+        "isEOF": 1,
+        "nss": "survey_test_6ab0d862e5894639b5cf72dc81d9f4cd.survey_versions",
+        "keyPattern": {
+          "questions.source.questionId": 1,
+          "questions.source.questionVersion": 1
+        },
+        "indexName": "questions.source.questionId_1_questions.source.questionVersion_1",
+        "isMultiKey": true,
+        "multiKeyPaths": {
+          "questions.source.questionId": [
+            "questions"
+          ],
+          "questions.source.questionVersion": [
+            "questions"
+          ]
+        },
+        "isUnique": false,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+          "questions.source.questionId": [
+            "[ObjectId('6adf0598a1ffa19a2a56e98c'), ObjectId('6adf0598a1ffa19a2a56e98c')]"
+          ],
+          "questions.source.questionVersion": [
+            "[1, 1]"
+          ]
+        },
+        "keysExamined": 1,
+        "seeks": 1,
+        "dupsTested": 1,
+        "dupsDropped": 0,
+        "peakTrackedMemBytes": 8
+      }
+    }
+  },
+  "queryPlanner": {
+    "namespace": "survey_test_6ab0d862e5894639b5cf72dc81d9f4cd.survey_versions",
+    "parsedQuery": {
+      "questions": {
+        "$elemMatch": {
+          "$and": [
+            {
+              "source.questionId": {
+                "$eq": "6adf0598a1ffa19a2a56e98c"
+              }
+            },
+            {
+              "source.questionVersion": {
+                "$eq": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "indexFilterSet": false,
+    "queryHash": "697A8B6B",
+    "planCacheShapeHash": "697A8B6B",
+    "planCacheKey": "1C276B3A",
+    "optimizationTimeMillis": 0,
+    "maxIndexedOrSolutionsReached": false,
+    "maxIndexedAndSolutionsReached": false,
+    "maxScansToExplodeReached": false,
+    "prunedSimilarIndexes": false,
+    "winningPlan": {
+      "isCached": false,
+      "stage": "FETCH",
+      "filter": {
+        "questions": {
+          "$elemMatch": {
+            "$and": [
+              {
+                "source.questionId": {
+                  "$eq": "6adf0598a1ffa19a2a56e98c"
+                }
+              },
+              {
+                "source.questionVersion": {
+                  "$eq": 1
+                }
+              }
+            ]
+          }
+        }
+      },
+      "nss": "survey_test_6ab0d862e5894639b5cf72dc81d9f4cd.survey_versions",
+      "inputStage": {
+        "stage": "IXSCAN",
+        "nss": "survey_test_6ab0d862e5894639b5cf72dc81d9f4cd.survey_versions",
+        "keyPattern": {
+          "questions.source.questionId": 1,
+          "questions.source.questionVersion": 1
+        },
+        "indexName": "questions.source.questionId_1_questions.source.questionVersion_1",
+        "isMultiKey": true,
+        "multiKeyPaths": {
+          "questions.source.questionId": [
+            "questions"
+          ],
+          "questions.source.questionVersion": [
+            "questions"
+          ]
+        },
+        "isUnique": false,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+          "questions.source.questionId": [
+            "[ObjectId('6adf0598a1ffa19a2a56e98c'), ObjectId('6adf0598a1ffa19a2a56e98c')]"
+          ],
+          "questions.source.questionVersion": [
+            "[1, 1]"
+          ]
+        }
+      }
+    },
+    "rejectedPlans": []
+  },
+  "limitation": "single-node synthetic 1000-record query audit, not a capacity benchmark"
+}

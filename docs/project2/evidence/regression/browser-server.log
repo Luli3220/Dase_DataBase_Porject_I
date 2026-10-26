@@ -1,0 +1,21 @@
+INFO:     Started server process [42972]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:51166 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /static/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63637 - "GET /static/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63637 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:53308 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53308 - "POST /api/auth/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:53308 - "GET /dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /api/surveys?offset=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /surveys/new HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "POST /api/surveys HTTP/1.1" 201 Created
+INFO:     127.0.0.1:53308 - "GET /surveys/6adf03b9d6af02a6feba0b8e/edit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /api/surveys/6adf03b9d6af02a6feba0b8e HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53308 - "GET /api/surveys/6adf03b9d6af02a6feba0b8e/draft HTTP/1.1" 200 OK

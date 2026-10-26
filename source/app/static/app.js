@@ -52,11 +52,22 @@ async function editor(surveyId) {
       `<section class="card"><h2>基本信息</h2><label for="title">标题</label><input id="title" value="${esc(survey.title)}" maxlength="200"><label for="description">说明</label><textarea id="description" maxlength="5000">${esc(survey.description)}</textarea><div class="row"><div><label for="policy">重复填写策略</label><select id="policy" ${survey.hasSubmissions?'disabled':''}><option value="latest_only" ${survey.submissionPolicy==='latest_only'?'selected':''}>每人最新一份有效</option><option value="multiple" ${survey.submissionPolicy==='multiple'?'selected':''}>每次均有效</option></select></div><div><label for="deadline">截止时间（本地）</label><input id="deadline" type="datetime-local" value="${localDate(survey.deadlineAt)}"></div></div><p class="hint">有成功答卷后策略锁定；历史答卷始终保留。问卷标题/说明属于可修改元信息。</p>${draft?`<label class="check"><input id="anonymous" type="checkbox" ${draft.settings.anonymous?'checked':''} ${draft.state==='sealed'?'disabled':''}>草稿版本匿名（仅隐藏账号身份）</label>`:''}</section>`+
       (draft?`<div id="questions"></div><div class="card"><h2>添加题目</h2><div class="toolbar">${Object.entries(typeNames).map(([t,n])=>`<button class="secondary add" data-type="${t}" ${draft.state==='sealed'?'disabled':''}>＋ ${n}</button>`).join('')}</div><p class="hint">题目顺序决定默认路径；修改题目根本含义请新建题目 ID。已发布版本保留原内容。</p></div>`:'<div class="card"><p>已发布版本已冻结。派生下一版本后可以继续编辑，旧版仍对外服务。</p><button id="derive" '+(survey.status==='closed'?'disabled':'')+'>从发布版创建新草稿</button></div>')+
       `<div class="toolbar"><button id="save">保存${draft?'草稿与信息':'基本信息'}</button>${draft?`<button id="preview" class="secondary">保存并预览</button><button id="publish" ${survey.status==='closed'?'disabled':''}>${draft.state==='sealed'?'恢复发布':'保存并发布'}</button>`:''}<a class="button secondary" href="/dashboard">返回工作台</a>${survey.publishedVersion?`<a class="button secondary" href="/surveys/${surveyId}/statistics">查看统计</a>`:''}</div><p id="saved" class="hint"></p>`;
+    app.insertAdjacentHTML('beforeend', `<section class="card"><label class="check"><input id="contribute-statistics" type="checkbox" ${survey.statisticsContribution?'checked':''}>允许本问卷为共享题目贡献匿名聚合统计</label><p class="hint">默认关闭。仅贡献精确题目版本的计数与数字分布，不提供账号、原始文本或完整答卷；共享数据每份问卷至少 3 份实际回答才汇入。</p><button id="save-contribution" class="secondary">保存贡献授权</button></section>`);
+    bind('#save-contribution','click',async()=>{survey=await api('/surveys/'+surveyId,'PATCH',{statisticsContribution:$('#contribute-statistics').checked});toast('统计贡献授权已保存');});
+    if(draft&&draft.state==='draft'){
+      $('#questions').insertAdjacentHTML('beforebegin','<section class="card"><h2>从题目库或题库导入</h2><p class="hint">先保存当前草稿，再选择精确版本。导入后的内容固定，题库更新不会自动改变问卷。</p><button id="open-import" class="secondary">从题库添加题目</button><div id="import-panel" hidden></div></section>');
+      bind('#open-import','click',async()=>{await save();await showPicker();});
+    }
     if(draft){drawQuestions();$$('.add').forEach(b=>b.onclick=()=>{readMeta();const type=b.dataset.type;draft.questions.push({id:id(),type,title:'新'+typeNames[type],required:false,options:type.includes('choice')?[{id:id(),label:'选项一'},{id:id(),label:'选项二'}]:[],validation:{},routingRules:[]});render();});}
     bind('#derive','click',async()=>{draft=await api(`/surveys/${surveyId}/draft-from-published`,'POST');survey=await api('/surveys/'+surveyId);render();});
     bind('#save','click',()=>save());
     bind('#preview','click',async()=>{await save();await api(`/surveys/${surveyId}/preview`);window.open(`/surveys/${surveyId}/preview`,'_blank');});
     bind('#publish','click',async()=>{if(draft.state!=='sealed')await save();const published=await api(`/surveys/${surveyId}/publish`,'POST',{expectedRevision:draft.revision});survey=published;draft=null;render();const box=document.createElement('div');box.className='success';const a=document.createElement('a');a.href=published.publicUrl;a.textContent=published.publicUrl;box.append('发布成功。公开填写链接：',a);app.prepend(box);});
+  }
+  async function showPicker(replaceLocalId=null){
+    const host=$('#import-panel');host.hidden=false;
+    await libraryPicker(host,async(qid,version)=>{draft=await api(`/surveys/${surveyId}/draft/import-question`,'POST',{questionId:qid,questionVersion:version,expectedRevision:draft.revision,replaceLocalId});render();toast(replaceLocalId?'题目版本已显式替换，原有外跳规则已清空':'题目已导入，内容固定到所选版本');});
+    host.scrollIntoView({block:'center'});
   }
   function readMeta(){survey.title=$('#title').value;survey.description=$('#description').value;survey.submissionPolicy=$('#policy').value;survey.deadlineAt=$('#deadline').value?new Date($('#deadline').value).toISOString():null;if(draft)draft.settings.anonymous=$('#anonymous').checked;}
   async function save(){readMeta();const changes={title:survey.title,description:survey.description,submissionPolicy:survey.submissionPolicy,deadlineAt:survey.deadlineAt};survey=await api('/surveys/'+surveyId,'PATCH',changes);if(draft&&draft.state==='draft')draft=await api(`/surveys/${surveyId}/draft`,'PUT',{expectedRevision:draft.revision,settings:draft.settings,questions:draft.questions});$('#saved').textContent='已保存'+(draft?' · revision '+draft.revision:'');toast('保存成功');}
@@ -85,6 +96,15 @@ async function editor(surveyId) {
         $('.rules',node).innerHTML=q.routingRules.map((r,i)=>`<div class="rule" data-rule="${i}"><div class="row"><label>优先级<input class="priority" type="number" min="0" step="1" value="${r.priority}"></label><label>条件<select class="operator">${ops.map(o=>`<option ${o===r.condition.operator?'selected':''}>${o}</option>`).join('')}</select></label><label>操作数${q.type==='number'?`<input class="operand-number" type="number" step="any" value="${r.condition.operand}">`:`<select class="operand" ${q.type==='multiple_choice'?'multiple':''}>${q.options.map(o=>`<option value="${esc(o.id)}" ${(q.type==='multiple_choice'?r.condition.operand.includes(o.id):r.condition.operand===o.id)?'selected':''}>${esc(o.label)}</option>`).join('')}</select>`}</label><label>跳转至<select class="target"><option value="" ${r.target.kind==='end'?'selected':''}>结束问卷</option>${draft.questions.slice(index+1).map(t=>`<option value="${esc(t.id)}" ${r.target.questionId===t.id?'selected':''}>${esc(t.title)} (${esc(t.id)})</option>`).join('')}</select></label><button class="subtle danger remove-rule" aria-label="删除规则">×</button></div></div>`).join('');
         $$('.rule',node).forEach(rnode=>{const i=Number(rnode.dataset.rule),r=q.routingRules[i];bind('.priority','input',e=>r.priority=Number(e.target.value),rnode);bind('.operator','change',e=>r.condition.operator=e.target.value,rnode);bind('.operand-number','input',e=>r.condition.operand=Number(e.target.value),rnode);bind('.operand','change',e=>r.condition.operand=q.type==='multiple_choice'?[...e.target.selectedOptions].map(o=>o.value):e.target.value,rnode);bind('.target','change',e=>r.target=e.target.value?{kind:'question',questionId:e.target.value}:{kind:'end'},rnode);bind('.remove-rule','click',()=>{readMeta();q.routingRules.splice(i,1);render();},rnode);});
         bind('.add-rule','click',()=>{readMeta();q.routingRules.push({id:id(),priority:q.routingRules.length?Math.max(...q.routingRules.map(r=>r.priority))+10:10,condition:{operator:ops[0],operand:q.type==='number'?0:q.type==='multiple_choice'?(q.options.length?[q.options[0].id]:[]):q.options[0]?.id||''},target:{kind:'end'}});render();},node);
+      }
+      if(q.source){
+        node.insertAdjacentHTML('beforeend',`<div class="source-panel"><p class="meta">来源题目 ${esc(q.source.questionId)} · V${q.source.questionVersion}（核心内容已固定）</p><div class="toolbar"><button class="secondary detach-source">解除关联后编辑本地副本</button><button class="secondary upgrade-source">选择版本替换此题</button><a href="/questions/${q.source.questionId}" target="_blank">题目历史与使用情况</a></div></div>`);
+        $$('.qtitle,.qrequired,.options input,.options button,.add-option,.validation input',node).forEach(el=>el.disabled=true);
+        bind('.detach-source','click',()=>{if(confirm('解除后此题作为本地副本编辑，不再参与该全局题目的跨问卷统计。确认解除？')){readMeta();delete q.source;render();}},node);
+        bind('.upgrade-source','click',async()=>{await save();await showPicker(q.id);},node);
+      } else {
+        node.insertAdjacentHTML('beforeend','<div class="toolbar"><button class="secondary save-library-question">保存为常用题目</button></div>');
+        bind('.save-library-question','click',async()=>{readMeta();const content={};for(const key of ['type','title','required','options','validation'])content[key]=q[key];const created=await api('/questions','POST',{content});q.source={questionId:created.definition._id,questionVersion:1};render();toast('已保存为常用题目；保存草稿以保留关联');},node);
       }
       if(draft.state==='sealed')$$('input,select,button',node).forEach(el=>el.disabled=true);
     });
@@ -146,6 +166,94 @@ async function statisticsPage(surveyId){
   await render();
 }
 
+function libraryContentForm(c={type:'number',title:'',required:true,options:[],validation:{}}) {
+  return `<label for="lib-type">题型</label><select id="lib-type">${Object.entries(typeNames).map(([t,n])=>`<option value="${t}" ${t===c.type?'selected':''}>${n}</option>`).join('')}</select>
+    <label for="lib-title">题目名称</label><input id="lib-title" maxlength="500" required value="${esc(c.title)}">
+    <label class="check"><input id="lib-required" type="checkbox" ${c.required?'checked':''}>必答题</label>
+    <div id="lib-options-wrap"><label for="lib-options">选项（每行一项，已有选项按原顺序保留身份）</label><textarea id="lib-options">${esc(c.options.map(o=>o.label).join('\n'))}</textarea></div>
+    <div id="lib-constraints"></div>`;
+}
+function wireContentForm(c={type:'number',validation:{}}) {
+  function draw(){const t=$('#lib-type').value,v=c.type===t?c.validation:{};
+    $('#lib-options-wrap').hidden=!t.includes('choice');
+    const fields=t==='number'?[['min','最小值'],['max','最大值']]:t==='text'?[['minLength','最少字数'],['maxLength','最多字数']]:t==='multiple_choice'?[['minSelections','最少选择'],['maxSelections','最多选择']]:[];
+    $('#lib-constraints').innerHTML='<div class="row">'+fields.map(([k,n])=>`<label>${n}<input class="lib-bound" data-key="${k}" type="number" step="${t==='number'?'any':'1'}" value="${v[k]??''}"></label>`).join('')+'</div>'+(t==='number'?`<label class="check"><input id="lib-integer" type="checkbox" ${v.integerOnly?'checked':''}>仅整数</label>`:'');}
+  draw();bind('#lib-type','change',draw);
+}
+function readContentForm(previous={options:[]}) {
+  const type=$('#lib-type').value, validation={};
+  $$('.lib-bound').forEach(n=>{if(n.value!=='')validation[n.dataset.key]=Number(n.value);});
+  if(type==='number')validation.integerOnly=$('#lib-integer').checked;
+  const options=type.includes('choice')?$('#lib-options').value.split('\n').filter(x=>x.trim()).map((label,i)=>({id:previous.options[i]?.id||id(),label:label.trim()})):[];
+  return {type,title:$('#lib-title').value,required:$('#lib-required').checked,options,validation};
+}
+
+async function questionsPage(search='',scope='accessible',offset=0) {
+  const data=await api(`/questions?search=${encodeURIComponent(search)}&scope=${scope}&offset=${offset}&limit=12`);
+  app.innerHTML=heading('QUESTION LIBRARY','我的题目与共享题目','题目拥有独立身份，每次修改生成新版本。', '<a class="button secondary" href="/question-banks">管理题库</a>')+
+    `<form id="lib-search" class="card row"><label>搜索题目<input id="search" value="${esc(search)}" maxlength="200"></label><label>范围<select id="lib-scope"><option value="accessible">全部可用题目</option><option value="mine">我的题目</option><option value="shared">共享给我</option></select></label><button>搜索</button></form>
+    <div class="grid">${data.items.map(q=>`<article class="card"><span class="badge">V${q.currentVersion} · ${q.canEdit?'我的题目':'共享给我'}${q.archived?' · 已归档':''}</span><h2><a href="/questions/${q._id}">${esc(q.current.content.title)}</a></h2><p class="meta">${typeNames[q.current.content.type]} · 创建者 ${esc(q.ownerUsername)}<br>来源：${q.forkedFrom?'独立派生自 '+esc(q.forkedFrom.questionId)+' / V'+q.forkedFrom.questionVersion:'原创题目'}</p><a class="button secondary" href="/questions/${q._id}">历史与使用情况</a></article>`).join('')||'<p class="muted">没有符合条件的题目。</p>'}</div>
+    <div class="toolbar"><button id="lib-prev" ${offset?'':'disabled'}>上一页</button><span>共 ${data.total} 题</span><button id="lib-next" ${offset+12<data.total?'':'disabled'}>下一页</button></div>
+    <form id="lib-create" class="card"><h2>创建常用题目</h2>${libraryContentForm()}<p class="hint">跳转规则由每份问卷独立设置。新题默认私有。</p><button>保存到题目库</button></form>`;
+  $('#lib-scope').value=scope;wireContentForm();
+  bind('#lib-search','submit',e=>{e.preventDefault();return questionsPage($('#search').value,$('#lib-scope').value);});
+  bind('#lib-prev','click',()=>questionsPage(search,scope,offset-12));bind('#lib-next','click',()=>questionsPage(search,scope,offset+12));
+  bind('#lib-create','submit',async e=>{e.preventDefault();const q=await api('/questions','POST',{content:readContentForm()});location.href='/questions/'+q.definition._id;});
+}
+
+async function questionPage(qid,selected=null,historyOffset=0) {
+  const q=await api('/questions/'+qid), history=await api(`/questions/${qid}/versions?offset=${historyOffset}&limit=20`);
+  let chosen=history.items.find(v=>v.version===selected)||history.items[0];
+  app.innerHTML=heading('VERSIONED QUESTION',q.current.content.title,`${typeNames[q.current.content.type]} · 创建者 ${q.ownerUsername} · 当前 V${q.currentVersion}`,'<a class="button secondary" href="/questions">全部题目</a>')+
+    `<section class="card"><h2>版本历史</h2><p class="hint">从任意历史版本派生；恢复会追加新版本。已导入问卷始终固定原版本。</p><label for="lib-history">选择版本</label><select id="lib-history">${history.items.map(v=>`<option value="${v.version}" ${v.version===chosen.version?'selected':''}>V${v.version} · ${v.changeType} · ${v.parentVersion?'源于 V'+v.parentVersion:'初始版本'}${v.restoredFromVersion?' · 恢复 V'+v.restoredFromVersion:''}</option>`).join('')}</select><p class="meta">题目身份：${esc(qid)}${q.forkedFrom?'<br>派生来源：'+esc(q.forkedFrom.questionId)+' / V'+q.forkedFrom.questionVersion:''}</p><div class="toolbar"><button id="history-prev" ${historyOffset?'':'disabled'}>上一页历史</button><button id="history-next" ${historyOffset+20<history.total?'':'disabled'}>下一页历史</button></div></section>
+    <form id="lib-edit" class="card"><h2>${q.canEdit?'从所选版本创建新版本':'所选版本内容'}</h2>${libraryContentForm(chosen.content)}<div class="toolbar">${q.canEdit?`<button ${q.archived?'disabled':''}>保存为 V${q.currentVersion+1}</button><button type="button" id="lib-restore" class="secondary" ${q.archived?'disabled':''}>恢复所选版本</button>`:''}<button type="button" id="lib-fork" class="secondary" ${q.archived?'disabled':''}>独立派生为我的题目</button></div></form>
+    ${q.canEdit?`<form id="lib-share" class="card"><h2>共享与归档</h2><label for="share-users">共享给注册用户名（用逗号分隔，留空撤销）</label><input id="share-users" value="${esc(q.sharedUsernames.join(', '))}"><p class="hint">共享允许读取与复用；答卷统计由问卷所有者另行授权。</p><div class="toolbar"><button>保存共享范围</button><button type="button" class="secondary" id="lib-archive">${q.archived?'取消归档':'归档题目'}</button></div></form>`:''}
+    <section class="card"><h2>加入我的题库</h2><div id="bank-choices"></div></section>
+    <section class="card"><h2>使用情况</h2><div id="lib-usage"></div></section>
+    <section class="card"><h2>跨问卷统计</h2><p class="hint">统计所选精确版本 V${chosen.version}；按提交次数统计，不代表跨问卷去重人数。共享数据每份问卷至少 3 份实际回答才汇入。</p><div class="row"><label>统计范围<select id="stat-scope"><option value="mine">我拥有的问卷</option><option value="consented_shared">加上已授权贡献的数据</option></select></label><label>统计口径<select id="stat-mode"><option value="current_effective">当前有效</option><option value="historical_raw">历史原始</option></select></label></div><div id="lib-statistics"></div></section>`;
+  wireContentForm(chosen.content);
+  if(!q.canEdit)$$('#lib-edit input,#lib-edit select,#lib-edit textarea').forEach(n=>n.disabled=true);
+  bind('#lib-history','change',e=>questionPage(qid,Number(e.target.value),historyOffset));
+  bind('#history-prev','click',()=>questionPage(qid,null,historyOffset-20));bind('#history-next','click',()=>questionPage(qid,null,historyOffset+20));
+  bind('#lib-edit','submit',async e=>{e.preventDefault();await api(`/questions/${qid}/versions`,'POST',{content:readContentForm(chosen.content),parentVersion:chosen.version,expectedCurrentVersion:q.currentVersion});await questionPage(qid);toast('已追加新版本');});
+  bind('#lib-restore','click',async()=>{await api(`/questions/${qid}/restore`,'POST',{version:chosen.version,expectedCurrentVersion:q.currentVersion});await questionPage(qid);toast('恢复完成，旧版本保留');});
+  bind('#lib-fork','click',async()=>{const fork=await api(`/questions/${qid}/fork`,'POST',{version:chosen.version});location.href='/questions/'+fork.definition._id;});
+  bind('#lib-share','submit',async e=>{e.preventDefault();await api(`/questions/${qid}/sharing`,'PATCH',{usernames:$('#share-users').value.split(/[,，]/).map(s=>s.trim()).filter(Boolean),expectedRevision:q.revision});await questionPage(qid,chosen.version,historyOffset);toast('共享范围已更新');});
+  bind('#lib-archive','click',async()=>{await api(`/questions/${qid}/archive`,'PATCH',{archived:!q.archived,expectedRevision:q.revision});await questionPage(qid,chosen.version,historyOffset);});
+  const banks=await api('/question-banks?limit=100');
+  $('#bank-choices').innerHTML=banks.items.length?`<label>题库<select id="target-bank">${banks.items.map(b=>`<option value="${b._id}">${esc(b.name)}</option>`).join('')}</select></label><label class="check"><input id="bank-pin" type="checkbox" checked>固定所选 V${chosen.version}（取消后在选题时解析最新版）</label><button id="add-to-bank" class="secondary">加入题库</button>`:'<a href="/question-banks">先创建题库</a>';
+  bind('#add-to-bank','click',async()=>{const bank=await api('/question-banks/'+$('#target-bank').value);await api('/question-banks/'+bank._id+'/items','PUT',{questionId:qid,pinnedVersion:$('#bank-pin').checked?chosen.version:null,expectedRevision:bank.revision});toast('已加入题库');});
+  async function usage(offset=0){const rows=await api(`/questions/${qid}/usage?version=${chosen.version}&offset=${offset}&limit=10`);$('#lib-usage').innerHTML=`<p class="hint">显示我的版本与当前可公开访问的问卷，其他私有使用记录不披露。</p>${rows.items.map(r=>`<p>${esc(r.title)} · 问卷 V${r.surveyVersion} · ${esc(({draft:'草稿',published:'当前发布',historical:'历史版本'})[r.status])}</p>`).join('')||'<p>暂无可见使用记录。</p>'}<div class="toolbar"><button id="usage-prev" ${offset?'':'disabled'}>上一页使用记录</button><span>${rows.total} 条</span><button id="usage-next" ${offset+10<rows.total?'':'disabled'}>下一页使用记录</button></div>`;bind('#usage-prev','click',()=>usage(offset-10));bind('#usage-next','click',()=>usage(offset+10));}
+  async function statistics(){const s=await api(`/questions/${qid}/statistics?version=${chosen.version}&scope=${$('#stat-scope').value}&mode=${$('#stat-mode').value}`);$('#lib-statistics').innerHTML=`<div class="metrics"><div class="metric">参与问卷<strong>${s.surveyCount}</strong></div><div class="metric">提交次数<strong>${s.submissionCount}</strong></div><div class="metric">实际回答<strong>${s.answeredCount}</strong></div></div>${s.options?s.options.map(o=>`<div class="statline"><span>${esc(o.label)}</span><strong>${o.count}</strong></div>`).join(''):s.type==='number'?`<h3>平均值：${s.mean??'暂无数据'}</h3>${s.distribution.map(bin=>`<div class="statline"><span>${bin.lower===null?'小于 '+bin.upper:bin.upper===null?bin.lower+' 及以上':'['+bin.lower+', '+bin.upper+')'}</span><strong>${bin.count}</strong></div>`).join('')}`:'<p class="hint">这里只展示回答数；文本原文可在自己问卷的统计中查看。</p>'}<p class="hint">其他未授权问卷已排除；${s.exclusions.suppressedSurveyCount} 份共享问卷因样本不足而排除。不同题目版本分别统计。</p>`;}
+  bind('#stat-scope','change',statistics);bind('#stat-mode','change',statistics);await usage();await statistics();
+}
+
+async function banksPage(offset=0) {
+  const banks=await api(`/question-banks?offset=${offset}&limit=12`);
+  app.innerHTML=heading('COLLECTIONS','我的题库','将常用题组织为多个题库；移除成员不会删除原题。')+`<div class="grid">${banks.items.map(b=>`<article class="card"><h2><a href="/question-banks/${b._id}">${esc(b.name)}</a></h2><p>${esc(b.description)}</p><p class="meta">${b.items.length} 道题目</p></article>`).join('')}</div><div class="toolbar"><button id="bank-prev" ${offset?'':'disabled'}>上一页</button><span>共 ${banks.total} 个题库</span><button id="bank-next" ${offset+12<banks.total?'':'disabled'}>下一页</button></div><form id="bank-create" class="card"><h2>新建题库</h2><label for="bank-name">题库名称</label><input id="bank-name" required maxlength="200"><label for="bank-desc">题库说明</label><textarea id="bank-desc" maxlength="2000"></textarea><button>创建题库</button></form>`;
+  bind('#bank-create','submit',async e=>{e.preventDefault();const b=await api('/question-banks','POST',{name:$('#bank-name').value,description:$('#bank-desc').value});location.href='/question-banks/'+b._id;});
+  bind('#bank-prev','click',()=>banksPage(offset-12));bind('#bank-next','click',()=>banksPage(offset+12));
+}
+async function bankPage(bid) {
+  const b=await api('/question-banks/'+bid);
+  app.innerHTML=heading('QUESTION BANK',b.name,b.description,'<a class="button secondary" href="/question-banks">全部题库</a>')+`<form id="bank-edit" class="card"><label for="bank-name">题库名称</label><input id="bank-name" value="${esc(b.name)}" required maxlength="200"><label for="bank-desc">题库说明</label><textarea id="bank-desc" maxlength="2000">${esc(b.description)}</textarea><button>保存题库信息</button></form><div class="grid">${b.items.map(item=>`<article class="card"><h2>${item.available?`<a href="/questions/${item.questionId}">${esc(item.content.title)}</a>`:'原题已归档或撤销共享'}</h2><p>${item.available?'选用 V'+item.resolvedVersion:''} · ${item.pinnedVersion?'固定 V'+item.pinnedVersion:'选题时使用最新版'}</p><button class="secondary bank-remove" data-q="${item.questionId}">移除成员</button></article>`).join('')||'<p>题库还没有成员。</p>'}</div><section class="card"><h2>从可用题目中添加</h2><div id="library-picker"></div></section>`;
+  bind('#bank-edit','submit',async e=>{e.preventDefault();await api('/question-banks/'+bid,'PATCH',{name:$('#bank-name').value,description:$('#bank-desc').value,expectedRevision:b.revision});await bankPage(bid);toast('题库已保存');});
+  $$('.bank-remove').forEach(n=>bind(`[data-q="${n.dataset.q}"]`,'click',async()=>{await api(`/question-banks/${bid}/items/${n.dataset.q}?expectedRevision=${b.revision}`,'DELETE');await bankPage(bid);}));
+  await libraryPicker($('#library-picker'),async(qid,version)=>{await api('/question-banks/'+bid+'/items','PUT',{questionId:qid,pinnedVersion:version,expectedRevision:b.revision});await bankPage(bid);});
+}
+async function libraryPicker(host,onSelect,search='',offset=0,bankId='') {
+  const banks=await api('/question-banks?limit=100');
+  let rows,total;
+  if(bankId){const bank=await api('/question-banks/'+bankId);const filtered=bank.items.filter(i=>i.available&&i.content.title.toLowerCase().includes(search.toLowerCase()));total=filtered.length;rows=filtered.slice(offset,offset+10).map(i=>({_id:i.questionId,currentVersion:i.resolvedVersion,current:{content:i.content}}));}
+  else {const data=await api(`/questions?search=${encodeURIComponent(search)}&offset=${offset}&limit=10`);rows=data.items.filter(q=>!q.archived);total=data.total;}
+  host.innerHTML=`<form id="picker-search" class="row"><label>题库范围<select id="picker-bank"><option value="">全部可用题目</option>${banks.items.map(b=>`<option value="${b._id}">${esc(b.name)}</option>`).join('')}</select></label><label>搜索<input id="picker-term" value="${esc(search)}" maxlength="200"></label><button>搜索选题</button></form><div id="picker-results">${rows.map(q=>`<div class="picker-row"><span>${esc(q.current.content.title)} · ${typeNames[q.current.content.type]}</span><label>版本<select class="picker-version" data-qid="${q._id}"><option value="${q.currentVersion}">V${q.currentVersion}</option></select></label><button class="secondary pick-question" data-qid="${q._id}">选用</button></div>`).join('')||'<p class="muted">暂无可用题目。</p>'}</div><div class="toolbar"><button type="button" id="picker-prev" ${offset?'':'disabled'}>上一页选题</button><button type="button" id="picker-next" ${offset+10<total?'':'disabled'}>下一页选题</button></div>`;
+  $('#picker-bank',host).value=bankId;
+  bind('#picker-search','submit',e=>{e.preventDefault();return libraryPicker(host,onSelect,$('#picker-term',host).value,0,$('#picker-bank',host).value);},host);
+  bind('#picker-prev','click',()=>libraryPicker(host,onSelect,search,offset-10,bankId),host);bind('#picker-next','click',()=>libraryPicker(host,onSelect,search,offset+10,bankId),host);
+  for(const q of rows){let vOffset=0;const select=$(`.picker-version[data-qid="${q._id}"]`,host);async function moreVersions(){const history=await api(`/questions/${q._id}/versions?offset=${vOffset}&limit=100`);const selected=select.value==='more'?String(q.currentVersion):select.value;const versions=history.items;select.innerHTML=(vOffset?select.innerHTML.replace(/<option value="more">.*?<\/option>/,''):versions.some(v=>v.version===q.currentVersion)?'':`<option value="${q.currentVersion}">V${q.currentVersion} · 固定选用</option>`)+versions.map(v=>`<option value="${v.version}">V${v.version} · ${esc(v.content.title)}</option>`).join('')+(vOffset+100<history.total?'<option value="more">加载更早版本…</option>':'');select.value=selected;vOffset+=100;}await moreVersions();select.onchange=()=>{if(select.value==='more')moreVersions().catch(showError);};}
+  $$('.pick-question',host).forEach(button=>bind(`.pick-question[data-qid="${button.dataset.qid}"]`,'click',()=>onSelect(button.dataset.qid,Number($(`.picker-version[data-qid="${button.dataset.qid}"]`,host).value)),host));
+}
+
 async function start(){
   const path=location.pathname;
   try{const info=await api('/me');me=info.user;csrf=info.csrfToken;$('#identity').textContent=me.username;$('#logout').hidden=false;}catch(e){if(e.status!==401)throw e;}
@@ -154,7 +262,11 @@ async function start(){
   if(!me){location.href='/login?next='+encodeURIComponent(path);return;}
   if(path==='/'||path==='/dashboard')return dashboard();
   if(path==='/surveys/new')return newSurvey();
+  if(path==='/questions')return questionsPage();
+  if(path==='/question-banks')return banksPage();
   const bits=path.split('/');
+  if(bits[1]==='questions')return questionPage(bits[2]);
+  if(bits[1]==='question-banks')return bankPage(bits[2]);
   if(bits[1]==='survey')return fill(bits[2]);
   if(bits[1]==='surveys'&&bits[3]==='edit')return editor(bits[2]);
   if(bits[1]==='surveys'&&bits[3]==='preview')return fill(null,bits[2]);

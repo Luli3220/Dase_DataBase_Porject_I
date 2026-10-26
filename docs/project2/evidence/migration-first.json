@@ -1,0 +1,49 @@
+{
+  "database": "survey_dev",
+  "oldDocumentsUnchanged": true,
+  "before": {
+    "users": {
+      "count": 6,
+      "sha256": "c368fd4ff6463fb53118ec99bee69c9df2d6bed433456fec4484253e66562b81"
+    },
+    "surveys": {
+      "count": 3,
+      "sha256": "6b075fd1ebf83af26842eb290efbf3cc5cb4d9c686a1762ff1f32f71badd51a2"
+    },
+    "survey_versions": {
+      "count": 6,
+      "sha256": "c6526ad8cfa1690e4f2f86bc4359573629ecb70629dc42133d5af87d5472ff30"
+    },
+    "submissions": {
+      "count": 6,
+      "sha256": "4bd2408e23066a6a52934a04bb5263f5f11b601d3edb791492adccf2a1d0c6e5"
+    }
+  },
+  "after": {
+    "users": {
+      "count": 6,
+      "sha256": "c368fd4ff6463fb53118ec99bee69c9df2d6bed433456fec4484253e66562b81"
+    },
+    "surveys": {
+      "count": 3,
+      "sha256": "6b075fd1ebf83af26842eb290efbf3cc5cb4d9c686a1762ff1f32f71badd51a2"
+    },
+    "survey_versions": {
+      "count": 6,
+      "sha256": "c6526ad8cfa1690e4f2f86bc4359573629ecb70629dc42133d5af87d5472ff30"
+    },
+    "submissions": {
+      "count": 6,
+      "sha256": "4bd2408e23066a6a52934a04bb5263f5f11b601d3edb791492adccf2a1d0c6e5"
+    }
+  },
+  "collections": [
+    "question_banks",
+    "question_definitions",
+    "question_versions",
+    "submissions",
+    "survey_versions",
+    "surveys",
+    "users"
+  ]
+}

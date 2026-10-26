@@ -14,15 +14,15 @@ ROOT=Path(__file__).resolve().parents[2]
 
 
 def main():
-    folder=ROOT/'docs'/'evidence'
+    folder=ROOT/'docs'/'project2'/'evidence'
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--index-only',action='store_true',help='Only index existing JUnit; do not query MongoDB or rewrite environment/OpenAPI')
     args=parser.parse_args()
-    report=folder/'respondent-username'/'full.xml'
+    report=folder/'full.xml'
     tree=ET.parse(report)
     cases=tree.findall('.//testcase')
     counts={'PASS':0,'FAIL':0,'SKIP':0}
-    lines=['# 逐项测试结果','',f'来源：[完整JUnit](respondent-username/full.xml)，共{len(cases)}个测试实例。表中列出测试名称、结果和耗时，详细步骤见[测试用例](../test-cases.md)。','','|编号|测试（源模块/名称）|实际结果|耗时秒|','|---|---|---|---|']
+    lines=['# 逐项测试结果','',f'来源：[完整JUnit](full.xml)，共{len(cases)}个测试实例。表中列出测试名称、结果和耗时，详细步骤见[测试用例](../test-cases.md)。','','|编号|测试（源模块/名称）|实际结果|耗时秒|','|---|---|---|---|']
     for i,c in enumerate(cases,1):
         status='SKIP' if c.find('skipped') is not None else 'FAIL' if c.find('failure') is not None or c.find('error') is not None else 'PASS'
         counts[status]+=1
@@ -39,7 +39,7 @@ def main():
     meta={'recordedAt':datetime.now(timezone(timedelta(hours=8))).isoformat(),'timezone':'Asia/Shanghai','python':platform.python_version(),
           'platform':platform.platform(),'mongoVersion':mongo,'git':git.stdout.strip() if git.returncode == 0 else 'No Git repository in supplied workspace',
           'packages':{n:version(n) for n in ['fastapi','starlette','pymongo','pydantic','pytest','playwright','argon2-cffi','uvicorn']},
-          'counts':counts,'tests':len(cases),'workingDirectory':'source','command':'../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/evidence/respondent-username/full.xml'}
+          'counts':counts,'tests':len(cases),'workingDirectory':'source','command':'../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/project2/evidence/full.xml'}
     (folder/'environment.json').write_text(json.dumps(meta,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     from app.main import app
     (ROOT/'docs'/'openapi.json').write_text(json.dumps(app.openapi(),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
