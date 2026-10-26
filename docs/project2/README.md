@@ -1,18 +1,34 @@
-# Project 2 独立交付材料
+# Project 2 材料索引
 
-本目录记录第二阶段增量演进，不维护第二套当前 API/数据库规范。
+第二阶段围绕题目复用、共享、版本管理、题库和跨问卷统计展开。这里整理设计演进与开发过程；当前完整系统说明见[系统设计](../system-design.md)、[数据库设计](../database-design.md)和[API](../api.md)。
 
-|材料|用途|
+## 最近一次验证
+
+2026-10-27 完整回归 **167 项通过，耗时 64.21 秒**。本次新增统一原子保存、归档题目分页过滤，并说明 `surveyCount` 的统计口径。
+
+- [修复说明与测试步骤](fixes-2026-10-27.md)
+- [本轮日志、JUnit 和截图](evidence/fixes-2026-10-27/README.md)
+- [各轮证据总索引](evidence/README.md)
+
+## 设计与实施
+
+|材料|阅读重点|
 |---|---|
-|[完整项目报告](final-report.md)|需求、原设计、演进、实现、测试与 AI 过程|
-|[LaTeX/PDF](report/)|与工作区 report1/1.2.tex 同步的独立报告及图片|
-|[需求追踪](requirements-traceability.md)|八项需求到模型、接口、UI、测试及证据|
-|[数据库演进](database-evolution.md)|为什么从四集合演进为七集合|
-|[迁移与回退](migration.md)|实测升级、旧数据指纹与回退边界|
-|[代码变更](change-log.md)|基线、原位改动、新模块及兼容性|
-|[测试用例](test-cases.md)|步骤、输入、预期输出、实际证据|
-|[测试报告](test-report.md)|本阶段真实执行结果与失败修复|
-|[AI 日志](ai-usage-log.md)|真实工具、提示、代码产物与人工参与边界|
-|[逐项结果](evidence/case-results.md)|最终完整 JUnit 的每项状态|
+|[需求追踪](requirements-traceability.md)|八项需求与数据模型、接口、页面和测试的对应关系|
+|[数据库演进](database-evolution.md)|从问卷内嵌题目到独立题目身份的设计选择|
+|[升级与回退](migration.md)|Schema、索引更新、旧数据检查和回退步骤|
+|[变更记录](change-log.md)|各轮改动、文件入口和版本基线|
+|[AI 使用日志](ai-usage-log.md)|提示来源、工具、代码产物和问题处理|
 
-唯一现行规范：[系统](../system-design.md)、[数据库](../database-design.md)、[API](../api.md)、[OpenAPI](../openapi.json)、[规则](../rule-specification.md)、[运行](../../source/README.md)。第一阶段历史测试/AI 材料在父目录及 `../evidence/` 原样保留。原代码和技术文档可用 `git show project1-baseline-61e2263:<path>` 查阅。
+## 测试与报告
+
+|材料|内容|
+|---|---|
+|[测试用例](test-cases.md)|功能、权限、并发和统计边界用例|
+|[测试记录](test-report.md)|当前结果及首轮 150 项历史验收|
+|[测试代码导航](../../source/tests/README.md)|原测试与第二阶段新增测试|
+|[证据目录](evidence/README.md)|各轮输出、逐项结果、环境与截图|
+|[项目报告](final-report.md)|第二阶段完整实验报告|
+|[排版报告](report/README.md)|LaTeX 源文件和 7 页 PDF|
+
+首轮第二阶段提交为 `7261649`，第一阶段基线为 `project1-baseline-61e2263`。运行和演示可从[运行手册](../../source/README.md)开始。

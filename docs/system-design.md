@@ -1,48 +1,81 @@
-# 系统设计与关键逻辑
+# 系统设计
 
-系统采用前后端分离的组织方式。浏览器使用HTML、CSS和原生JavaScript，通过同源JSON API访问FastAPI。数据库操作使用同步PyMongo，由FastAPI线程池执行。main负责装配应用、中间件、错误处理和页面入口，业务规则由独立模块处理。
+问卷工坊使用 FastAPI 提供同源网页和 JSON API，前端由 HTML、CSS 和原生 JavaScript 组成。同步 PyMongo 操作由 FastAPI 线程池执行，规则计算与持久化逻辑分别放在规则引擎和业务服务中。
 
 ```mermaid
 flowchart LR
- UI[编辑器/填写器/题库/统计] --> API[FastAPI请求模型]
- API --> AUTH[Cookie / CSRF / ownership]
- AUTH --> SVC[问卷/提交/统计/题目/题库服务]
- SVC --> RULES[纯函数规则引擎]
- SVC --> DB[PyMongo事务与聚合]
- DB --> M[(MongoDB七集合)]
+ UI[问卷编辑 / 填写 / 题库 / 统计] --> API[FastAPI 与请求模型]
+ API --> AUTH[会话 / CSRF / 资源权限]
+ AUTH --> SVC[问卷 / 答卷 / 题目 / 题库服务]
+ SVC --> RULES[规则引擎]
+ SVC --> DB[PyMongo 事务与聚合]
+ DB --> M[(MongoDB 七集合)]
 ```
 
-写入：认证→严格请求模型→权限/状态检查→规则规范化→Pydantic BSON文档→Mongo JSON Schema/唯一索引。读取：数据库查询/聚合→明确DTO→统一ObjectId/UTC序列化。engine/service都可脱离Web直接测试。
+文件入口见[源码导航](../source/app/README.md)，字段和关系见[数据库设计](database-design.md)。
 
-## 身份与匿名
+## 模块职责
 
-用户名经NFKC、trim和casefold归一化，长度为3..40位，支持中英文、数字、下划线和短横线。密码长度为10..128字符，采用Argon2id哈希（t=2、m=19456KiB、p=1）。会话使用itsdangerous时间签名，Cookie设置HttpOnly和SameSite=Lax，默认有效期8小时；生产配置使用Secure和HTTPS。Cookie包含uid、csrf和sessionVersion，退出时递增users.sessionVersion，使该账号已有会话失效。
+|模块|职责|
+|---|---|
+|`main.py`、`core/`|应用装配、配置、会话、请求边界与异常响应|
+|`models/`、`db/mongo.py`|请求模型、BSON 映射、集合验证器、索引和事务|
+|`rules/engine.py`|题目配置、答案、条件匹配和填写路径|
+|`services/surveys.py`|问卷、草稿、统一保存、导入、发布和关闭|
+|`services/submissions.py`、`statistics.py`|幂等提交、有效答卷选择、列表与单问卷统计|
+|`services/questions.py`|题目身份、版本、恢复、fork、共享与来源校验|
+|`services/question_banks.py`|题库、成员及选题时的版本解析|
+|`services/question_statistics.py`|使用关系和精确版本的跨问卷聚合|
+|`api/`、`static/`、`templates/`|HTTP 入口、页面交互和样式|
 
-状态变更要求X-CSRF-Token，/api/me返回当前令牌。登录/注册同样拒绝显式外域Origin。管理端检查ownerId，公开链接只赋予填写入口；已登录用户填写别人的问卷是正常路径。身份、提交时间、匿名快照由服务器决定，多余字段拒绝。用户数据不作为任意Mongo filter。DOM textContent/转义防XSS。普通/流式请求均限制2MiB。验证错误不回显密码或原始输入；Mongo错误只记录异常类型，不返回堆栈。
+写入依次经过身份验证、请求模型、业务校验和数据库约束。读取结果通过响应字段选择和统一序列化转换为 JSON；规则与服务可直接由测试调用。
 
-答卷接口通过明确的DTO组织返回字段。匿名记录包含答卷ID、版本、时间和答案；非匿名记录增加respondentId和respondentUsername。用户名由当前页的去重用户ID批量查询，并与答卷列表共用snapshot事务。requestId和摘要用于内部处理。每份答卷的身份展示由anonymousAtSubmission决定，因此V2改为实名后，V1匿名答卷仍保持原有展示方式。匿名保护针对账号身份，自由文本保留填写者提交的内容。
+## 身份与数据可见性
 
-## 版本与并发
+用户名经过 NFKC、去除首尾空白和 casefold 归一化，长度为 3–40 位，支持中英文、数字、下划线和短横线。密码为 10–128 字符，使用 Argon2id 哈希，参数为 t=2、m=19456 KiB、p=1。
 
-创建问卷时，元数据和V1草稿在同一事务中提交。保存草稿根据surveyId、draftVersion、state和revision进行条件更新。新草稿从当前发布版本复制，版本号为publishedVersion+1；并发派生时返回同一份现存草稿。
+会话使用时间签名 Cookie，包含 uid、csrf 和 sessionVersion，设置 HttpOnly、SameSite=Lax，默认有效期 8 小时；生产配置使用 HTTPS 和 Secure。退出时递增用户的 sessionVersion，使已有会话失效。状态修改请求携带 X-CSRF-Token，服务端同时检查 Origin；登录和注册也检查显式 Origin。
 
-发布先执行静态验证，再按revision冻结为sealed，最后切换surveys的公开指针。若冻结后中断，原公开版本继续服务，再次publish完成恢复。关闭状态参与指针更新条件，保持关闭后的问卷状态。
+管理接口按资源所有者授权。题目共享提供读取与复用能力，独立维护通过 fork 完成；问卷数据贡献则由问卷所有者单独设置。公开链接提供当前问卷的填写入口，填写者仍先登录。
 
-提交在snapshot/majority事务中进行：先查询幂等键并比较摘要，新请求依次检查状态、截止时间和版本，再重算填写路径、更新hasSubmissions/writeRevision并插入答卷。提交与策略修改、发布和关闭共同写入survey文档，冲突后重读状态。成功请求的网络重试返回原记录。
+答卷列表按每份记录的 anonymousAtSubmission 决定身份展示。匿名记录返回版本、时间和答案；非匿名记录补充 respondentId 和当前用户名。用户名在同一 snapshot 事务中按当前页批量查询，关联账号缺失时返回 null。匿名设置的后续变化不影响历史记录的展示，填写者在自由文本中提交的内容仍保留。
 
-统计和所有者列表使用只读snapshot事务，保证一次响应中的计数、均值和明细来自同一数据快照。latest_only先在整份问卷中选择每人的最新提交，再筛选版本；historical_raw直接查询指定版本的记录。文本和数字明细分页展示，均值及回答数基于全部选中答卷计算。最新记录按submittedAt和_id排序；页面通过刷新获取后续提交。
+网页使用转义或 textContent 显示动态内容。请求体上限为 2 MiB，覆盖普通和流式请求。验证错误返回字段位置和消息，数据库异常统一映射为服务不可用。
 
-## 后续扩展
+## 问卷保存与发布
 
-schemaVersion表示数据库文档格式，version表示问卷内容版本。后续增加题型或操作符时，可沿现有模型、规则引擎、前端控件和统计服务扩展，并通过回归测试保持历史数据兼容。数据量增长后，需要进一步评估共享问卷文档的写入竞争、统计缓存和预聚合更新方式。
+创建问卷时，元信息与 V1 草稿在同一事务中写入。派生草稿从当前发布版本复制，版本号为 publishedVersion+1；并发派生会取得同一份现存草稿。
 
+编辑器通过 `POST /api/surveys/{id}/save` 同时保存元信息与草稿。元信息约束、重复策略锁、草稿 expectedRevision、来源一致性及权限锁写入共用一个事务，成功后返回 survey 和新 revision 的 draft。旧 PATCH 元信息与 PUT 草稿接口仍分别可用；无草稿或冻结草稿的元信息编辑使用 PATCH。
 
-## 第二阶段模块协作
+前端在服务器确认后显示保存成功。保存冲突时保留输入，并提示获取最新草稿；预览和发布等待保存成功再继续。网络结果不确定时，页面提示核对保存状态后重试。
 
-新增 `services/questions.py` 管理身份、可见性、共享、不可变版本、恢复、fork 和来源一致性；`question_banks.py` 管理有界题库引用；`question_statistics.py` 负责反查及精确版本跨问卷聚合；`api/question_routes.py` 复用原认证依赖和错误边界。原 `services/surveys.py` 增加来源校验和 import_question；草稿保存改为事务，以便来源授权检查与 CAS 一同提交。原规则引擎、提交服务、统计服务和认证服务继续承担原职责。
+发布先验证整份配置，按 revision 冻结为 sealed，再切换 surveys 的公开指针。冻结后中断时，原公开版本继续服务，沿用同一 revision 重试即可完成发布。关闭状态参与指针更新条件。
 
-导入事务：验证问卷所有者及草稿 revision → 验证题目共享/归档及精确版本 → 写题目定义 revision（与撤销共享争用同一文档）→ 生成/替换局部实例 → 复用规则引擎验证整卷 → 更新草稿 CAS。事务重试后重检权限。共享和题库成员编辑也有显式 revision；过期值返回 409，不丢失更新。已存在的合法来源快照允许在共享撤销后继续保存，不让原问卷因外部权限变化失效。
+## 题目版本与问卷导入
 
-题目界面在原 app.js 上扩展；同一导航提供我的题目/共享题、版本、恢复、fork、共享、归档、题库、反查和统计。问卷编辑器提供选题和明确解除关联；来源题核心字段锁定，路由仍独立编辑。所有动态内容继续转义，状态请求沿用 CSRF/Origin 校验，移动端 390px 端到端检查无水平溢出。
+题目定义保存稳定身份和共享范围，具体内容按版本追加。恢复复制旧版内容并生成新版本；fork 创建新的题目身份。问卷内保留固定版本来源和完整内容快照，填写、提交与历史解释均读取问卷快照。
 
-贡献授权是问卷级独立设置，默认关闭；统计服务在只读 snapshot 中计算授权集合、抑制范围和结果，避免同一次响应前后漂移。题目创建者不能凭“题目被使用”访问其他创建者的原始答卷。详细口径见 [数据库设计](database-design.md)，升级见 [迁移](project2/migration.md)。
+导入在一个事务中完成：
+
+1. 检查问卷所有者、草稿状态和 expectedRevision。
+2. 检查题目权限、归档状态和具体版本。
+3. 写入题目定义 revision，与共享撤销或归档操作形成并发协调。
+4. 生成局部实例，或显式替换已有实例。
+5. 复用规则引擎校验整卷，按草稿 revision 更新。
+
+事务重试会重新检查权限。已有来源快照在撤销共享后仍可保存，新导入或版本替换按当前权限判断。来源题的核心内容与库中固定版本一致，用户通过解除关联或选择新版本修改题意；问卷路由由局部实例独立维护。
+
+题库成员可固定版本，也可在选题时解析最新版。选择器使用 `activeOnly=true`，由 MongoDB 先过滤归档题再搜索、分页和计数；题目管理页使用默认列表查看全部题目。
+
+## 提交与统计
+
+提交使用 snapshot/majority 事务。服务先检查幂等键与摘要，再验证问卷状态、截止时间、版本和答案路径，更新 hasSubmissions/writeRevision 并追加答卷。提交与策略修改、关闭、发布共同写入问卷文档，冲突后重新读取状态。
+
+`latest_only` 先在整份问卷的全部版本中选每人最新提交，再筛选目标版本；`multiple` 和历史原始口径保留相应提交。统计和答卷列表使用只读 snapshot，响应中的计数、均值和明细来自同一快照。
+
+跨问卷统计按题目身份和精确版本关联局部答案。`mine` 汇总本人问卷，`consented_shared` 加入显式贡献的数据；每份外部问卷至少 3 次实际回答后参与聚合。`surveyCount` 表示当前口径下有提交参与统计的去重问卷数，使用关系则按可见问卷版本记录展示。完整字段、跳题和跨版本替代的处理见[数据库设计](database-design.md#统计口径)。
+
+## 扩展方向
+
+增加题型时，可沿请求模型、规则引擎、前端控件和统计服务扩展。数据规模增长后，可进一步评估问卷写入竞争、统计缓存与预聚合。当前运行和验证范围见[测试记录](project2/test-report.md)。

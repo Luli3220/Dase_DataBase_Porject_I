@@ -1,20 +1,47 @@
-# 无损升级与回退
+# 数据库升级与回退
 
-基线 `61e2263`，升级目标为本分支工作树。没有覆盖原 .env，没有重置 Mongo 数据目录，也没有批量填充 source。
+第二阶段升级安装题目定义、题目版本和题库的验证器与索引，并为问卷题目增加可选来源字段。原问卷版本和答卷继续保留其内容与含义。
 
-升级前停止业务写入，备份 .env 与数据库；可使用本机 MongoDB Database Tools 的 `mongodump --uri <原副本集URI> --db survey_dev --out <备份路径>`。**本轮没有执行 mongodump，不把指纹校验当作可恢复备份。** 原始题库需求由用户给出，库题没有按标题从旧问卷自动合并。
+## 升级前准备
 
-在 source 目录执行：
+安排暂停业务写入，备份配置与数据库。使用 MongoDB Database Tools 时，可按实际连接和目录执行：
+
+```powershell
+mongodump --uri '<副本集URI>' --db survey_dev --out '<备份路径>'
+```
+
+后续的指纹比较用于核对文档内容；恢复数据使用升级前的数据库备份。
+
+## 执行升级
+
+保留原 `.env`，在 `source/` 运行：
 
 ```powershell
 ..\.venv\Scripts\python.exe -m scripts.migrate_project2
-..\.venv\Scripts\python.exe -m scripts.migrate_project2
 ```
 
-脚本安装/更新七集合验证器及索引；原四集合逐条以规范 BSON JSON 排序计算 SHA256，不输出用户内容。它不 insert/update/delete 原文档。比较前后指纹，不相等立即报错；审计期间应停止其他写入，否则并发业务变更也会被报告为不同。
+脚本安装或更新七集合的验证器和索引，对原四集合按固定顺序、规范 BSON JSON 计算 SHA256，比较执行前后的指纹。文档内容变化时会报错，因此核对期间需要暂停其他写入。初始化和迁移均可重复执行。
 
-本轮真实连接 `survey_dev`，连续执行两次，均 oldDocumentsUnchanged=true。保留了 users=6、surveys=3、survey_versions=6、submissions=6。见 [首次](evidence/migration-first.json) 与 [再次](evidence/migration-second.json)。这是现有开发数据的审计结果，不代表所有生产数据规模的迁移验证。
+source 可选，statisticsContribution 缺省按 false 解释，旧题与旧答卷无需补写。题目来源由明确的导入或保存操作建立，标题不作为题目身份。
 
-source 可选、statisticsContribution 缺省按false解释，因此旧文档无需改写，sealed 与 submissions 内容不动。初始化同样幂等，旧测试库仍可使用。新增题目版本由服务追加，无原地编辑或删除端点；数据库管理员直接操作不在服务保证内。
+## 已执行的检查
 
-回退时先停止写入并保存第二阶段数据库备份。推荐在独立目录检出 `project1-baseline-61e2263`，在独立数据库恢复升级前备份，再指向旧代码。**不承诺第一阶段旧程序能完整编辑带 source 的新文档**：其严格 Pydantic 模型不识别 source，直接降级代码会丢失第二阶段能力。因此不通过删除 source、删除新集合或修改历史快照来伪造无损回退。本轮未实际执行数据库恢复或生产部署回滚。
+2026-10-26 在开发库 `survey_dev` 连续执行两次升级，均返回 oldDocumentsUnchanged=true。
+
+|原集合|文档数|
+|---|---:|
+|users|6|
+|surveys|3|
+|survey_versions|6|
+|submissions|6|
+
+完整前后指纹见[首次结果](evidence/migration-first.json)和[再次结果](evidence/migration-second.json)。本次检查覆盖 Schema、索引升级及现有开发数据；数据库备份恢复尚未实测。
+
+## 回退方式
+
+1. 暂停业务写入，保存第二阶段数据库备份。
+2. 在独立目录检出 `project1-baseline-61e2263`。
+3. 向独立数据库恢复升级前备份，并将旧应用配置指向该数据库。
+4. 验证问卷读取、提交和统计后再切换运行入口。
+
+第一阶段的严格模型只识别当时的字段，不能完整编辑第二阶段新增的 source 文档，因此代码回退应与数据库备份版本配套。第二阶段数据保存在原备份中，后续可继续检查或恢复。

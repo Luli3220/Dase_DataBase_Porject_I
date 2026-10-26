@@ -1,5 +1,12 @@
 # 第二阶段独立测试报告
 
+## 当前修复验收：2026-10-27
+
+**167 passed，0失败/错误/跳过，64.21秒**，包含原150项和本次17项，逐项比对原JUnit确认全部包含。本轮使用独立 [fixes-2026-10-27](evidence/fixes-2026-10-27/) 目录，旧150项原始记录不覆盖。步骤、输入、实际结果和命令见 [本次修复报告](fixes-2026-10-27.md)。
+
+## 首次第二阶段验收：2026-10-26（历史记录）
+
+
 执行日期：2026-10-26（Asia/Shanghai）。基线 Commit `61e226387140ee7ca9f985bf010769c823253a1c`，Tag `project1-baseline-61e2263`；新实现位于独立分支 `project2/question-library` 的未提交工作树。最终验收：**150 passed / 0 failed / 0 errors / 0 skipped，43.57秒**。其中原测试113项、新增37项。完整 [输出](evidence/full.txt)、[JUnit](evidence/full.xml)、[逐项结果](evidence/case-results.md)、[环境](evidence/environment.json)。第一阶段历史记录不覆盖。
 
 环境：Windows，Python3.11.5，MongoDB8.3.11单节点rs0，PyMongo4.19.0，FastAPI0.115.7，Pydantic2.12.5，pytest8.4.2，Playwright1.64.0及Chromium。使用原 .venv 和已有 Mongo 数据目录；测试采用独立随机数据库，浏览器服务在8001临时启动。

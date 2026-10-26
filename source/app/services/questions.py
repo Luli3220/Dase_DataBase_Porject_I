@@ -69,9 +69,11 @@ class QuestionService:
             result['sharedUsernames'] = [u['username'] for u in self.db.users.find({'_id': {'$in': q['sharedWith']}}, {'username': 1}, session=session)]
         return result
 
-    def list(self, user_id, search='', offset=0, limit=20, scope='accessible'):
+    def list(self, user_id, search='', offset=0, limit=20, scope='accessible', active_only=False):
         uid = oid(user_id)
         query = {'ownerId': uid} if scope == 'mine' else {'sharedWith': uid, 'ownerId': {'$ne': uid}} if scope == 'shared' else {'$or': [{'ownerId': uid}, {'sharedWith': uid}]}
+        if active_only:
+            query['archived'] = False
         def operation(session):
             # Search version content in Mongo, before page selection; never regex interpolation.
             pipeline = [{'$match': query}, {'$lookup': {'from': 'question_versions', 'let': {'qid': '$_id', 'v': '$currentVersion'},

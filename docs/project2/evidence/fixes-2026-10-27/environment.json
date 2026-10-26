@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-10-27T06:18:12.413972+08:00",
+  "baselineCommit": "72616496fc6cb143d71f93312bc46696487cc44e",
+  "python": "3.11.5",
+  "mongoVersion": "8.3.11",
+  "packages": {
+    "fastapi": "0.115.7",
+    "pydantic": "2.12.5",
+    "pymongo": "4.19.0",
+    "pytest": "8.4.2",
+    "playwright": "1.64.0"
+  },
+  "tests": 167,
+  "originalTestsIncluded": 150,
+  "newTests": 17,
+  "passed": 167,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 0,
+  "durationSeconds": 64.21,
+  "command": "../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/project2/evidence/fixes-2026-10-27/full.xml",
+  "evidenceDirectory": "../docs/project2/evidence/fixes-2026-10-27/full-browser"
+}

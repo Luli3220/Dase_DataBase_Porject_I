@@ -90,6 +90,11 @@ class SurveyPatch(StrictModel):
     submissionPolicy: Literal["latest_only", "multiple"] | None = None
 
 
+class SurveySaveInput(StrictModel):
+    metadata: SurveyPatch
+    draft: DraftInput
+
+
 class PublishInput(StrictModel):
     expectedRevision: int = Field(ge=0)
 

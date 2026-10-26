@@ -380,6 +380,53 @@
         }
       }
     },
+    "/api/surveys/{survey_id}/save": {
+      "post": {
+        "summary": "Save",
+        "operationId": "save_api_surveys__survey_id__save_post",
+        "parameters": [
+          {
+            "name": "survey_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Survey Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveySaveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/surveys/{survey_id}/draft": {
       "get": {
         "summary": "Draft",
@@ -1072,6 +1119,16 @@
               "minimum": 1,
               "default": 20,
               "title": "Limit"
+            }
+          },
+          {
+            "name": "activeOnly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Activeonly"
             }
           }
         ],
@@ -2613,6 +2670,23 @@
         "additionalProperties": false,
         "type": "object",
         "title": "SurveyPatch"
+      },
+      "SurveySaveInput": {
+        "properties": {
+          "metadata": {
+            "$ref": "#/components/schemas/SurveyPatch"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/DraftInput"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "metadata",
+          "draft"
+        ],
+        "title": "SurveySaveInput"
       },
       "Target": {
         "properties": {

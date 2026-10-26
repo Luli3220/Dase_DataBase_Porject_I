@@ -1,0 +1,51 @@
+INFO:     Started server process [43316]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55359 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /static/app.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /static/style.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:62796 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62796 - "POST /api/auth/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:62796 - "GET /dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/surveys?offset=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /surveys/new HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "POST /api/surveys HTTP/1.1" 201 Created
+INFO:     127.0.0.1:62796 - "GET /surveys/6adfd10e93b62db2942b89a4/edit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/surveys/6adfd10e93b62db2942b89a4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/surveys/6adfd10e93b62db2942b89a4/draft HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "POST /api/surveys/6adfd10e93b62db2942b89a4/save HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/question-banks?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions?search=&offset=0&limit=10&activeOnly=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c2c/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c2a/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c28/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c26/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c24/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c22/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c20/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/question-banks?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions/6adfd10db94d6ca5ca015c1e/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions/6adfd10db94d6ca5ca015c1c/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions?search=&offset=10&limit=10&activeOnly=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions/6adfd10db94d6ca5ca015c18/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c1a/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c16/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "GET /api/questions/6adfd10db94d6ca5ca015c14/versions?offset=0&limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62796 - "POST /api/surveys/6adfd10e93b62db2942b89a4/draft/import-question HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "POST /api/surveys/6adfd10e93b62db2942b89a4/draft/import-question HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:56255 - "GET /questions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions?search=&scope=accessible&offset=0&limit=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /questions/6adfd10db94d6ca5ca015c14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions/6adfd10db94d6ca5ca015c14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions/6adfd10db94d6ca5ca015c14/versions?offset=0&limit=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/question-banks?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions/6adfd10db94d6ca5ca015c14/usage?version=1&offset=0&limit=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56255 - "GET /api/questions/6adfd10db94d6ca5ca015c14/statistics?version=1&scope=mine&mode=current_effective HTTP/1.1" 200 OK
