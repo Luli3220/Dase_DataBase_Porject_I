@@ -70,7 +70,28 @@ async function editor(surveyId) {
     host.scrollIntoView({block:'center'});
   }
   function readMeta(){survey.title=$('#title').value;survey.description=$('#description').value;survey.submissionPolicy=$('#policy').value;survey.deadlineAt=$('#deadline').value?new Date($('#deadline').value).toISOString():null;if(draft)draft.settings.anonymous=$('#anonymous').checked;}
-  async function save(){readMeta();const changes={title:survey.title,description:survey.description,submissionPolicy:survey.submissionPolicy,deadlineAt:survey.deadlineAt};survey=await api('/surveys/'+surveyId,'PATCH',changes);if(draft&&draft.state==='draft')draft=await api(`/surveys/${surveyId}/draft`,'PUT',{expectedRevision:draft.revision,settings:draft.settings,questions:draft.questions});$('#saved').textContent='已保存'+(draft?' · revision '+draft.revision:'');toast('保存成功');}
+  let saving=false;
+  async function save(){
+    if(saving)throw new Error('正在保存，请稍候。');
+    saving=true;
+    const buttons=$$('button',app).map(button=>[button,button.disabled]);
+    buttons.forEach(([button])=>button.disabled=true);
+    $('#saved').textContent='正在保存…';$('#error').hidden=true;
+    try{
+      readMeta();
+      const changes={title:survey.title,description:survey.description,submissionPolicy:survey.submissionPolicy,deadlineAt:survey.deadlineAt};
+      if(draft&&draft.state==='draft'){
+        const result=await api(`/surveys/${surveyId}/save`,'POST',{metadata:changes,draft:{expectedRevision:draft.revision,settings:draft.settings,questions:draft.questions}});
+        survey=result.survey;draft=result.draft;
+      }else survey=await api('/surveys/'+surveyId,'PATCH',changes);
+      $('#saved').textContent='已保存'+(draft?' · revision '+draft.revision:'');toast('保存成功');
+    }catch(error){
+      const rejected=error.status>=400&&error.status<500;
+      $('#saved').textContent=rejected?'本次保存未生效，当前输入仍保留。':'保存结果未确认，请核对后重试。';
+      if(error.code==='DRAFT_CONFLICT')error.message+=' 本次保存未生效，当前输入仍保留；请先备份输入，再刷新获取最新草稿。';
+      throw error;
+    }finally{saving=false;buttons.forEach(([button,disabled])=>button.disabled=disabled);}
+  }
   function drawQuestions(){
     const host=$('#questions');
     host.innerHTML=draft.questions.map((q,index)=>`<article class="card question" data-index="${index}"><div class="question-top"><span class="badge">${index+1} · ${typeNames[q.type]}</span><div><button class="subtle up" aria-label="上移题目">↑</button><button class="subtle down" aria-label="下移题目">↓</button><button class="subtle danger remove">删除题目</button></div></div><p class="meta">稳定 ID：${esc(q.id)}</p><label>题目标题<input class="qtitle" maxlength="500" value="${esc(q.title)}"></label><label class="check"><input class="qrequired" type="checkbox" ${q.required?'checked':''}>有效路径上的必答题</label>${q.type.includes('choice')?`<span class="section-label">选项 · 标签可编辑，ID 保持稳定</span><div class="options"></div><button class="secondary add-option">＋ 添加选项</button>`:''}<div class="validation row"></div>${q.type!=='text'?'<span class="section-label">条件跳转 · 数值较小的优先级先匹配</span><div class="rules"></div><button class="secondary add-rule">＋ 添加跳转规则</button>':''}</article>`).join('');
@@ -224,7 +245,7 @@ async function questionPage(qid,selected=null,historyOffset=0) {
   $('#bank-choices').innerHTML=banks.items.length?`<label>题库<select id="target-bank">${banks.items.map(b=>`<option value="${b._id}">${esc(b.name)}</option>`).join('')}</select></label><label class="check"><input id="bank-pin" type="checkbox" checked>固定所选 V${chosen.version}（取消后在选题时解析最新版）</label><button id="add-to-bank" class="secondary">加入题库</button>`:'<a href="/question-banks">先创建题库</a>';
   bind('#add-to-bank','click',async()=>{const bank=await api('/question-banks/'+$('#target-bank').value);await api('/question-banks/'+bank._id+'/items','PUT',{questionId:qid,pinnedVersion:$('#bank-pin').checked?chosen.version:null,expectedRevision:bank.revision});toast('已加入题库');});
   async function usage(offset=0){const rows=await api(`/questions/${qid}/usage?version=${chosen.version}&offset=${offset}&limit=10`);$('#lib-usage').innerHTML=`<p class="hint">显示我的版本与当前可公开访问的问卷，其他私有使用记录不披露。</p>${rows.items.map(r=>`<p>${esc(r.title)} · 问卷 V${r.surveyVersion} · ${esc(({draft:'草稿',published:'当前发布',historical:'历史版本'})[r.status])}</p>`).join('')||'<p>暂无可见使用记录。</p>'}<div class="toolbar"><button id="usage-prev" ${offset?'':'disabled'}>上一页使用记录</button><span>${rows.total} 条</span><button id="usage-next" ${offset+10<rows.total?'':'disabled'}>下一页使用记录</button></div>`;bind('#usage-prev','click',()=>usage(offset-10));bind('#usage-next','click',()=>usage(offset+10));}
-  async function statistics(){const s=await api(`/questions/${qid}/statistics?version=${chosen.version}&scope=${$('#stat-scope').value}&mode=${$('#stat-mode').value}`);$('#lib-statistics').innerHTML=`<div class="metrics"><div class="metric">参与问卷<strong>${s.surveyCount}</strong></div><div class="metric">提交次数<strong>${s.submissionCount}</strong></div><div class="metric">实际回答<strong>${s.answeredCount}</strong></div></div>${s.options?s.options.map(o=>`<div class="statline"><span>${esc(o.label)}</span><strong>${o.count}</strong></div>`).join(''):s.type==='number'?`<h3>平均值：${s.mean??'暂无数据'}</h3>${s.distribution.map(bin=>`<div class="statline"><span>${bin.lower===null?'小于 '+bin.upper:bin.upper===null?bin.lower+' 及以上':'['+bin.lower+', '+bin.upper+')'}</span><strong>${bin.count}</strong></div>`).join('')}`:'<p class="hint">这里只展示回答数；文本原文可在自己问卷的统计中查看。</p>'}<p class="hint">其他未授权问卷已排除；${s.exclusions.suppressedSurveyCount} 份共享问卷因样本不足而排除。不同题目版本分别统计。</p>`;}
+  async function statistics(){const s=await api(`/questions/${qid}/statistics?version=${chosen.version}&scope=${$('#stat-scope').value}&mode=${$('#stat-mode').value}`);$('#lib-statistics').innerHTML=`<div class="metrics"><div class="metric">参与统计的问卷<strong>${s.surveyCount}</strong></div><div class="metric">提交次数<strong>${s.submissionCount}</strong></div><div class="metric">实际回答<strong>${s.answeredCount}</strong></div></div>${s.options?s.options.map(o=>`<div class="statline"><span>${esc(o.label)}</span><strong>${o.count}</strong></div>`).join(''):s.type==='number'?`<h3>平均值：${s.mean??'暂无数据'}</h3>${s.distribution.map(bin=>`<div class="statline"><span>${bin.lower===null?'小于 '+bin.upper:bin.upper===null?bin.lower+' 及以上':'['+bin.lower+', '+bin.upper+')'}</span><strong>${bin.count}</strong></div>`).join('')}`:'<p class="hint">这里只展示回答数；文本原文可在自己问卷的统计中查看。</p>'}<p class="hint">问卷数仅计当前口径下有提交参与统计的去重问卷：无提交、全部答卷被新版替代或被小样本抑制的问卷不计入；题目被跳过仍可计入问卷数，但不计实际回答。使用关系数量另见上方“使用情况”。</p><p class="hint">其他未授权问卷已排除；${s.exclusions.suppressedSurveyCount} 份共享问卷因样本不足而排除。不同题目版本分别统计。</p>`;}
   bind('#stat-scope','change',statistics);bind('#stat-mode','change',statistics);await usage();await statistics();
 }
 
@@ -245,7 +266,7 @@ async function libraryPicker(host,onSelect,search='',offset=0,bankId='') {
   const banks=await api('/question-banks?limit=100');
   let rows,total;
   if(bankId){const bank=await api('/question-banks/'+bankId);const filtered=bank.items.filter(i=>i.available&&i.content.title.toLowerCase().includes(search.toLowerCase()));total=filtered.length;rows=filtered.slice(offset,offset+10).map(i=>({_id:i.questionId,currentVersion:i.resolvedVersion,current:{content:i.content}}));}
-  else {const data=await api(`/questions?search=${encodeURIComponent(search)}&offset=${offset}&limit=10`);rows=data.items.filter(q=>!q.archived);total=data.total;}
+  else {const data=await api(`/questions?search=${encodeURIComponent(search)}&offset=${offset}&limit=10&activeOnly=true`);rows=data.items;total=data.total;}
   host.innerHTML=`<form id="picker-search" class="row"><label>题库范围<select id="picker-bank"><option value="">全部可用题目</option>${banks.items.map(b=>`<option value="${b._id}">${esc(b.name)}</option>`).join('')}</select></label><label>搜索<input id="picker-term" value="${esc(search)}" maxlength="200"></label><button>搜索选题</button></form><div id="picker-results">${rows.map(q=>`<div class="picker-row"><span>${esc(q.current.content.title)} · ${typeNames[q.current.content.type]}</span><label>版本<select class="picker-version" data-qid="${q._id}"><option value="${q.currentVersion}">V${q.currentVersion}</option></select></label><button class="secondary pick-question" data-qid="${q._id}">选用</button></div>`).join('')||'<p class="muted">暂无可用题目。</p>'}</div><div class="toolbar"><button type="button" id="picker-prev" ${offset?'':'disabled'}>上一页选题</button><button type="button" id="picker-next" ${offset+10<total?'':'disabled'}>下一页选题</button></div>`;
   $('#picker-bank',host).value=bankId;
   bind('#picker-search','submit',e=>{e.preventDefault();return libraryPicker(host,onSelect,$('#picker-term',host).value,0,$('#picker-bank',host).value);},host);

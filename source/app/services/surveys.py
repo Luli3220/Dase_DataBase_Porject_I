@@ -42,18 +42,28 @@ class SurveyService:
         return self.db.survey_versions.find_one({"surveyId": survey["_id"], "version": survey["draftVersion"]})
 
     def edit(self, survey_id, user_id, data):
+        return transaction(self.db, lambda session: self._edit(survey_id, user_id, data, session))
+
+    def _edit(self, survey_id, user_id, data, session):
         # Empty draft is allowed to save; all non-empty configurations must be consistent.
         questions = validate_question_config(data["questions"], allow_empty=True)
+        survey = self.owned(survey_id, user_id, session)
+        old = self.db.survey_versions.find_one({'surveyId': survey['_id'], 'version': survey['draftVersion'],
+            'state': 'draft', 'revision': data['expectedRevision']}, session=session)
+        require(old is not None, '草稿已变更或冻结，请刷新', 'DRAFT_CONFLICT', 409)
+        QuestionService(self.db).validate_sources(questions, old['questions'], user_id, session)
+        result = self.db.survey_versions.find_one_and_update({'_id': old['_id'], 'state': 'draft', 'revision': data['expectedRevision']},
+            {'$set': {'questions': questions_to_bson(questions), 'settings': data['settings']}, '$inc': {'revision': 1}}, return_document=True, session=session)
+        require(result is not None, '草稿已变更或冻结，请刷新', 'DRAFT_CONFLICT', 409)
+        return result
+
+    def save(self, survey_id, user_id, changes, draft):
+        # Share a single session: metadata, draft, and any source permission writes
+        # either all commit or all roll back. Existing separate APIs stay available.
         def operation(session):
-            survey = self.owned(survey_id, user_id, session)
-            old = self.db.survey_versions.find_one({'surveyId': survey['_id'], 'version': survey['draftVersion'],
-                'state': 'draft', 'revision': data['expectedRevision']}, session=session)
-            require(old is not None, '草稿已变更或冻结，请刷新', 'DRAFT_CONFLICT', 409)
-            QuestionService(self.db).validate_sources(questions, old['questions'], user_id, session)
-            result = self.db.survey_versions.find_one_and_update({'_id': old['_id'], 'state': 'draft', 'revision': data['expectedRevision']},
-                {'$set': {'questions': questions_to_bson(questions), 'settings': data['settings']}, '$inc': {'revision': 1}}, return_document=True, session=session)
-            require(result is not None, '草稿已变更或冻结，请刷新', 'DRAFT_CONFLICT', 409)
-            return result
+            survey = self._patch(survey_id, user_id, changes, session)
+            version = self._edit(survey_id, user_id, draft, session)
+            return {'survey': survey, 'draft': version}
         return transaction(self.db, operation)
 
     def import_question(self, survey_id, user_id, question_id, version, revision, replace_local_id=None):
@@ -124,16 +134,18 @@ class SurveyService:
         return result
 
     def patch(self, survey_id, user_id, changes):
+        return transaction(self.db, lambda session: self._patch(survey_id, user_id, changes, session))
+
+    def _patch(self, survey_id, user_id, changes, session):
+        changes = dict(changes)
         require(all(v is not None for k, v in changes.items() if k != "deadlineAt"), "字段不能为 null")
         if "title" in changes:
             require(changes["title"].strip(), "标题不能为空")
             changes["title"] = changes["title"].strip()
-        def operation(session):
-            s = self.owned(survey_id, user_id, session)
-            if "submissionPolicy" in changes:
-                require(not s["hasSubmissions"] or changes["submissionPolicy"] == s["submissionPolicy"], "首次提交后不能修改重复填写策略", "POLICY_LOCKED", 409)
-            return self.db.surveys.find_one_and_update({"_id": s["_id"]}, {"$set": {**changes, "updatedAt": now()}, "$inc": {"writeRevision": 1}}, return_document=True, session=session)
-        return transaction(self.db, operation)
+        s = self.owned(survey_id, user_id, session)
+        if "submissionPolicy" in changes:
+            require(not s["hasSubmissions"] or changes["submissionPolicy"] == s["submissionPolicy"], "首次提交后不能修改重复填写策略", "POLICY_LOCKED", 409)
+        return self.db.surveys.find_one_and_update({"_id": s["_id"]}, {"$set": {**changes, "updatedAt": now()}, "$inc": {"writeRevision": 1}}, return_document=True, session=session)
 
     def close(self, survey_id, user_id):
         s = self.owned(survey_id, user_id)

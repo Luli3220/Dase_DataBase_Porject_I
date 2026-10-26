@@ -1,63 +1,62 @@
 # 问卷工坊 · MongoDB 在线问卷系统
 
-本项目是数据库课程两阶段持续演进的在线问卷系统，使用MongoDB、FastAPI和JavaScript实现注册登录、问卷编辑与发布、条件跳转、匿名填写、重复提交及结果统计。
+数据库课程项目，使用 MongoDB、FastAPI 和原生 JavaScript 实现问卷创建、发布、填写与统计。第二阶段在问卷版本与答卷模型上增加题目复用、共享、历史恢复、题库管理和跨问卷统计。
 
-## 仓库索引
+最近一次完整回归于 **2026-10-27** 完成：**167 项通过**，包含首轮 150 项和本次修复新增的 17 项。详细结果见[测试记录](docs/project2/test-report.md)。
 
-|目录|内容|入口|
-|---|---|---|
-|[requirements/](requirements/)|课程原始要求|[作业PDF](requirements/project1.pdf)|
-|[prompts/](prompts/)|开发Prompt与分阶段规格|[规格阅读顺序](prompts/README.md)|
-|[source/](source/)|后端、网页、测试、脚本、依赖及Docker配置|[安装、启动与测试](source/README.md)|
-|[docs/](docs/)|系统/数据库/API设计、测试记录及AI使用说明|[文档总索引](docs/README.md)|
+## 从这里开始
+
+|想了解什么|入口|
+|---|---|
+|安装、启动和操作演示|[运行手册](source/README.md)|
+|系统如何组织|[系统设计](docs/system-design.md)、[源码导航](source/app/README.md)|
+|数据库模型与查询口径|[数据库设计](docs/database-design.md)|
+|接口、字段和错误码|[API 说明](docs/api.md)、[OpenAPI](docs/openapi.json)|
+|第二阶段需求与实现|[Project 2 材料索引](docs/project2/README.md)|
+|测试结果和截图|[证据索引](docs/project2/evidence/README.md)|
+|课程要求与开发提示|[需求文件](requirements/README.md)、[Prompt 索引](prompts/README.md)|
+|实验报告|[Markdown 报告](docs/project2/final-report.md)、[LaTeX 与 PDF](docs/project2/report/README.md)|
+
+## 目录结构
 
 ```text
-Project1/
-├── README.md                 # 总索引
-├── requirements/             # 原始课程文件
-├── prompts/                  # 开发规格及Prompt
+Project1-1/
+├── README.md                 # 项目入口
+├── requirements/             # 课程任务书与第二阶段变更要求
+├── prompts/                  # 两阶段实施 Prompt
 ├── source/
-│   ├── app/                  # FastAPI、业务服务、规则与网页
-│   ├── tests/                # 单元 / MongoDB集成 / 浏览器测试
-│   ├── scripts/              # 安装、初始化、演示与测试
-│   ├── README.md             # 运行手册
-│   ├── requirements*.txt     # 依赖及精确版本
-│   ├── .env.example          # 配置样例
-│   └── docker-compose.yml    # Docker替代配置
+│   ├── app/                  # API、业务服务、规则与网页
+│   ├── tests/                # 单元、集成和浏览器测试
+│   ├── scripts/              # 环境、数据库与验证工具
+│   └── README.md             # 安装与运行
 └── docs/
     ├── README.md             # 文档导航
+    ├── *.md / openapi.json   # 当前系统设计与接口说明
     ├── adr/                  # 设计决策
-    └── evidence/             # 真实测试结果与截图
+    ├── evidence/             # 第一阶段证据
+    └── project2/             # 第二阶段设计演进、测试、过程记录与报告
+        ├── evidence/         # 按验证轮次组织的日志、JUnit 和截图
+        └── report/           # LaTeX 源文件与 PDF
 ```
 
-## 快速开始（PowerShell）
+本地 Python 环境位于 `.venv/`，MongoDB 数据位于 `.local/mongo/`，应用配置位于 `source/.env`。
+
+## 快速启动
+
+以下命令在仓库根目录运行，使用 Python 3.11 及以上版本。MongoDB 路径按本机安装位置调整。
 
 ```powershell
-# 在仓库根目录安装；使用Python 3.11+
 .\source\scripts\setup.ps1 -Python 'python'
-# 启动本机MongoDB副本集（修改为实际mongod路径）
 .\source\scripts\start-local.ps1 -MongoExe 'F:\MongoDB\bin\mongod.exe'
 cd source
 ..\.venv\Scripts\python.exe -m scripts.init_db
 ..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-访问 [登录](http://127.0.0.1:8000/login)、[注册](http://127.0.0.1:8000/register)、[API文档](http://127.0.0.1:8000/docs)。完整配置、常驻Mongo启动、Docker、测试和演示操作见 [运行手册](source/README.md)。
+启动后访问[工作台](http://127.0.0.1:8000/dashboard)、[题目](http://127.0.0.1:8000/questions)、[题库](http://127.0.0.1:8000/question-banks)或[交互式 API 文档](http://127.0.0.1:8000/docs)。已有第一阶段数据的升级步骤、MongoDB 常驻启动方式和测试命令见[运行手册](source/README.md)。
 
-## 项目资料
+## 两阶段材料
 
-- [课程要求与提交材料对应](docs/requirements-traceability.md)
-- [测试报告](docs/test-report.md)与[测试记录](docs/evidence/README.md)：第一阶段历史验收113项通过。
-- [数据库设计](docs/database-design.md)、[API说明](docs/api.md)、[需求追踪](docs/requirements-traceability.md)
-- [AI使用说明与Prompt/产物索引](docs/ai-usage-log.md) · [ChatGPT前期讨论](https://chatgpt.com/share/6ad37dad-75c4-83ec-b5d6-765759cca816)
+第一阶段实现账号、问卷、规则引擎与答卷统计，验收为 113 项通过，相关[测试与 AI 记录](docs/README.md#第一阶段材料)保存在 `docs/`。第二阶段形成七集合模型，首轮验收为 150 项；后续完成统一原子保存、归档分页和统计口径说明，完整回归为 167 项。各轮原始输出见[证据索引](docs/project2/evidence/README.md)。
 
-项目报告通过课程平台提交，报告中的GitHub链接对应本仓库。本地Python环境位于.venv，MongoDB数据位于.local，应用配置位于source/.env。
-
-
-## 第二阶段：版本化题目与题库
-
-系统沿原四集合增量演进为七集合，支持常用题复用、用户间共享、旧快照稳定、版本血缘与恢复、多版本并存、使用反查、题库管理及跨问卷精确版本统计。旧认证、规则、匿名、幂等和问卷统计继续保留。没有复制第二套应用。
-
-当前完整规范仍是 [数据库设计](docs/database-design.md)、[系统设计](docs/system-design.md)、[API](docs/api.md) 与 [OpenAPI](docs/openapi.json)。阶段材料见 [Project2 索引](docs/project2/README.md)、[完整报告](docs/project2/final-report.md)、[实测结果](docs/project2/test-report.md)。第一阶段测试与 AI 证据原样保留，Git 基线为 `project1-baseline-61e2263`。
-
-已有环境进入 source，运行 `../.venv/Scripts/python.exe -m scripts.migrate_project2` 原地安装验证器/索引；不会更新旧文档。启动命令和双账号演示见 [source/README.md](source/README.md)。第二阶段在独立分支 `project2/question-library` 上开发与交付。
+第一阶段代码基线为 `project1-baseline-61e2263`，第二阶段分支为 `project2/question-library`。实现过程见[变更记录](docs/project2/change-log.md)和[AI 使用日志](docs/project2/ai-usage-log.md)。

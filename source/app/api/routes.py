@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, Request, Response, Query
-from app.models.domain import Credentials, SurveyInput, SurveyPatch, DraftInput, PublishInput, SubmissionInput, serialize
+from app.models.domain import Credentials, SurveyInput, SurveyPatch, SurveySaveInput, DraftInput, PublishInput, SubmissionInput, serialize
 from app.core.security import current_user, csrf_user, set_session, session_data, COOKIE
 from app.services.auth import AuthService
 from app.services.surveys import SurveyService
@@ -76,6 +76,12 @@ def patch(survey_id: str, body: SurveyPatch, request: Request, user: Writer):
 def versions(survey_id: str, request: Request, user: User):
     s = svc(request).owned(survey_id, user["_id"])
     return serialize({"publishedVersion": s["publishedVersion"], "draftVersion": s["draftVersion"], "items": list(db(request).survey_versions.find({"surveyId": s["_id"]}).sort("version", -1))})
+
+
+@router.post("/surveys/{survey_id}/save")
+def save(survey_id: str, body: SurveySaveInput, request: Request, user: Writer):
+    return serialize(svc(request).save(survey_id, user["_id"], body.metadata.model_dump(exclude_unset=True),
+                                       body.draft.model_dump(exclude_none=True)))
 
 
 @router.get("/surveys/{survey_id}/draft")

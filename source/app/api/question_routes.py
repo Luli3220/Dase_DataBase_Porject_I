@@ -19,8 +19,9 @@ def create(body: QuestionCreate, request: Request, user: Writer):
 
 @router.get('/questions')
 def listing(request: Request, user: User, search: str = Query('', max_length=200),
-            scope: Literal['accessible', 'mine', 'shared'] = 'accessible', offset: int = Query(0, ge=0), limit: int = Query(20, ge=1, le=100)):
-    return serialize(QuestionService(db(request)).list(user['_id'], search, offset, limit, scope))
+            scope: Literal['accessible', 'mine', 'shared'] = 'accessible', offset: int = Query(0, ge=0), limit: int = Query(20, ge=1, le=100),
+            activeOnly: bool = False):
+    return serialize(QuestionService(db(request)).list(user['_id'], search, offset, limit, scope, activeOnly))
 
 
 @router.get('/questions/{question_id}')

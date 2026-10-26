@@ -1,6 +1,6 @@
 # 第二阶段需求追踪
 
-基线：`61e226387140ee7ca9f985bf010769c823253a1c`，本地 Tag `project1-baseline-61e2263`；开发分支 `project2/question-library`。需求来源为用户提供《大作业一：需求变更.pdf》，其原样副本保存在 [project2-changes.pdf](../../requirements/project2-changes.pdf)，实施契约见 [Prompt](../../prompts/Project2_Implementation_Prompt.md)。
+基线：`61e226387140ee7ca9f985bf010769c823253a1c`，本地 Tag `project1-baseline-61e2263`；开发分支 `project2/question-library`。需求来源为用户提供《大作业一：需求变更.pdf》，其原样副本保存在 [project2-changes.pdf](../../requirements/project2-changes.pdf)，实施说明见 [Prompt](../../prompts/Project2_Implementation_Prompt.md)。
 
 |需求|结构|接口|页面|测试组|
 |---|---|---|---|---|
@@ -13,12 +13,12 @@
 |7 题库管理|banks.items 固定/最新|question-banks / items|题库管理、选题|banks|
 |8 跨问卷统计|source + submissions + contribution|statistics|范围、口径、数字分布|statistics|
 
-执行结果和可复现证据在 [测试报告](test-report.md) 中补齐；不以第一阶段历史结果替代本阶段执行。
+执行结果见[测试记录](test-report.md)，原始输出按轮次保存在[证据目录](evidence/README.md)。
 
 
-## 最终验收映射（八项均已完成）
+## 测试与证据
 
-|需求|真实测试文件|对应证据|
+|需求|测试文件|对应证据|
 |---|---|---|
 |R1 复用|[test_import.py](../../source/tests/project2/test_import.py)|[stage-d.xml](evidence/stage-d.xml)|
 |R2 共享|[test_library.py](../../source/tests/project2/test_library.py)、[边界](../../source/tests/project2/test_boundaries.py)|[stage-c.xml](evidence/stage-c.xml)、[boundaries.xml](evidence/boundaries.xml)|
@@ -29,4 +29,4 @@
 |R7 题库|[test_library.py](../../source/tests/project2/test_library.py)|[题库截图](evidence/full-browser/p2-bank.png)|
 |R8 跨问卷统计|[test_statistics.py](../../source/tests/project2/test_statistics.py)、[浏览器](../../source/tests/project2/test_browser.py)|[完整JUnit](evidence/full.xml)、[1000份答卷审计](evidence/aggregation-audit.json)|
 
-最终同次运行150 passed/43.57s（原113+新增37），无失败/错误/跳过，见 [test-report.md](test-report.md)。
+首轮完整回归 150 项通过，43.57 秒（原 113＋新增 37）。2026-10-27 修复后完整回归为 167 项通过，64.21 秒，新增 17 项覆盖原子保存、归档分页和统计问卷数；见[修复说明](fixes-2026-10-27.md)与[本轮证据](evidence/fixes-2026-10-27/README.md)。

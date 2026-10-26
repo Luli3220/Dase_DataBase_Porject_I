@@ -72,6 +72,8 @@ class QuestionStatisticsService:
             facet = {'summary': [{'$group': {'_id': None, 'submissionCount': {'$sum': 1},
                        'answeredCount': {'$sum': {'$cond': ['$answered', 1, 0]}},
                        'mean': {'$avg': '$value'}}}],
+                     # Count distinct surveys with selected submissions, even if
+                     # this question was skipped. Not all usages, nor answered-only.
                      'surveys': [{'$group': {'_id': '$surveyId'}}, {'$count': 'n'}]}
             kind = v['content']['type']
             if kind in ('single_choice', 'multiple_choice'):
