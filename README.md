@@ -59,4 +59,4 @@ cd source
 
 第一阶段实现账号、问卷、规则引擎与答卷统计，验收为 113 项通过，相关[测试与 AI 记录](docs/README.md#第一阶段材料)保存在 `docs/`。第二阶段形成七集合模型，首轮验收为 150 项；后续完成统一原子保存、归档分页和统计口径说明，完整回归为 167 项。各轮原始输出见[证据索引](docs/project2/evidence/README.md)。
 
-第一阶段代码基线为 `project1-baseline-61e2263`，第二阶段分支为 `project2/question-library`。实现过程见[变更记录](docs/project2/change-log.md)和[AI 使用日志](docs/project2/ai-usage-log.md)。
+当前完整成果位于 `main`，第一阶段版本由标签 `project1-baseline-61e2263` 保留。第二阶段曾在 `project2/question-library` 开发，现已合入主分支。实现过程见[变更记录](docs/project2/change-log.md)和[AI 使用日志](docs/project2/ai-usage-log.md)。

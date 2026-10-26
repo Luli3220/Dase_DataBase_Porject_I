@@ -31,4 +31,4 @@
 |[项目报告](final-report.md)|第二阶段完整实验报告|
 |[排版报告](report/README.md)|LaTeX 源文件和 7 页 PDF|
 
-首轮第二阶段提交为 `7261649`，第一阶段基线为 `project1-baseline-61e2263`。运行和演示可从[运行手册](../../source/README.md)开始。
+当前交付入口为 `main`。首轮第二阶段提交为 `7261649`，修复与文档整理提交为 `71150c8`；第一阶段基线保存在 `project1-baseline-61e2263` 标签中。运行和演示可从[运行手册](../../source/README.md)开始。
