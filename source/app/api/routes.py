@@ -105,7 +105,7 @@ def preview(survey_id: str, request: Request, user: User):
     version = svc(request).draft(survey_id, user["_id"])
     validate_question_config(version["questions"])
     s = svc(request).owned(survey_id, user["_id"])
-    return {"title": s["title"], "description": s["description"], "surveyVersion": version["version"], "settings": version["settings"], "questions": version["questions"]}
+    return serialize({"title": s["title"], "description": s["description"], "surveyVersion": version["version"], "settings": version["settings"], "questions": version["questions"]})
 
 
 @router.get("/public/surveys/{public_id}")

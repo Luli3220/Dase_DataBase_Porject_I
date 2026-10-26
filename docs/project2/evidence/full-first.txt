@@ -1,0 +1,22 @@
+
+=================================== ERRORS ====================================
+_____________ ERROR collecting tests/project2/test_boundaries.py ______________
+import file mismatch:
+imported module 'test_boundaries' has this __file__ attribute:
+  E:\DBMS\Lab\Project1-1\source\tests\integration\test_boundaries.py
+which is not the same as the test file we want to collect:
+  E:\DBMS\Lab\Project1-1\source\tests\project2\test_boundaries.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+_________________ ERROR collecting tests/web/test_browser.py __________________
+import file mismatch:
+imported module 'test_browser' has this __file__ attribute:
+  E:\DBMS\Lab\Project1-1\source\tests\project2\test_browser.py
+which is not the same as the test file we want to collect:
+  E:\DBMS\Lab\Project1-1\source\tests\web\test_browser.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+- generated xml file: E:\DBMS\Lab\Project1-1\docs\project2\evidence\full.xml --
+=========================== short test summary info ===========================
+ERROR tests/project2/test_boundaries.py
+ERROR tests/web/test_browser.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!
+2 errors in 0.71s

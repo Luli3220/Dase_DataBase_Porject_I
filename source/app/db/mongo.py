@@ -58,6 +58,32 @@ SCHEMAS = {
 }
 
 
+SOURCE = {'bsonType': 'object', 'required': ['questionId', 'questionVersion'],
+          'additionalProperties': False, 'properties': {'questionId': ID, 'questionVersion': INT}}
+SCHEMAS['surveys']['$jsonSchema']['properties']['statisticsContribution'] = BOOL
+SCHEMAS['survey_versions']['$jsonSchema']['properties']['questions']['items']['properties']['source'] = SOURCE
+CONTENT = {'bsonType': 'object', 'required': ['type', 'title', 'required', 'options', 'validation'],
+           'additionalProperties': False,
+           'properties': {k: v for k, v in SCHEMAS['survey_versions']['$jsonSchema']['properties']['questions']['items']['properties'].items()
+                          if k in ('type', 'title', 'required', 'options', 'validation')}}
+SCHEMAS.update({
+    'question_definitions': schema({'ownerId': ID, 'currentVersion': INT, 'visibility': {'enum': ['private', 'shared']},
+        'sharedWith': {'bsonType': 'array', 'maxItems': 100, 'uniqueItems': True, 'items': ID},
+        'forkedFrom': {'anyOf': [SOURCE, {'bsonType': 'null'}]}, 'archived': BOOL,
+        'revision': {'bsonType': 'int', 'minimum': 0}, 'createdAt': DATE, 'updatedAt': DATE},
+        ['ownerId', 'currentVersion', 'visibility', 'sharedWith', 'archived', 'revision', 'createdAt', 'updatedAt']),
+    'question_versions': schema({'questionId': ID, 'version': INT, 'parentVersion': NULLINT,
+        'restoredFromVersion': NULLINT, 'changeType': {'enum': ['create', 'update', 'restore']},
+        'content': CONTENT, 'createdBy': ID, 'createdAt': DATE},
+        ['questionId', 'version', 'parentVersion', 'restoredFromVersion', 'changeType', 'content', 'createdBy', 'createdAt']),
+    'question_banks': schema({'ownerId': ID, 'name': {'bsonType': 'string', 'minLength': 1, 'maxLength': 200},
+        'description': {'bsonType': 'string', 'maxLength': 2000}, 'revision': {'bsonType': 'int', 'minimum': 0},
+        'items': {'bsonType': 'array', 'maxItems': 200, 'items': {'bsonType': 'object', 'required': ['questionId'],
+            'additionalProperties': False, 'properties': {'questionId': ID, 'pinnedVersion': INT}}},
+        'createdAt': DATE, 'updatedAt': DATE}, ['ownerId', 'name', 'description', 'revision', 'items', 'createdAt', 'updatedAt'])
+})
+
+
 def initialize(db):
     # Never drop or delete data. collMod is deliberately strict for future writes.
     for name, validator in SCHEMAS.items():
@@ -73,3 +99,9 @@ def initialize(db):
     db.submissions.create_index([("surveyId", ASCENDING), ("submittedAt", DESCENDING), ("_id", DESCENDING)])
     db.submissions.create_index([("surveyId", ASCENDING), ("surveyVersion", ASCENDING), ("submittedAt", DESCENDING)])
     db.submissions.create_index([("respondentId", ASCENDING), ("submittedAt", DESCENDING)])
+    db.question_definitions.create_index([('ownerId', ASCENDING), ('updatedAt', DESCENDING)])
+    db.question_definitions.create_index('sharedWith')
+    db.question_versions.create_index([('questionId', ASCENDING), ('version', ASCENDING)], unique=True)
+    db.question_banks.create_index([('ownerId', ASCENDING), ('updatedAt', DESCENDING)])
+    # Both keys traverse the same questions array; queries must use $elemMatch.
+    db.survey_versions.create_index([('questions.source.questionId', ASCENDING), ('questions.source.questionVersion', ASCENDING)])

@@ -1,4 +1,4 @@
-# API 规范（1.0.0）
+# API 规范（2.0.0）
 
 本机基础地址为http://127.0.0.1:8000，运行时可通过/docs查看交互文档，接口定义见[openapi.json](openapi.json)。
 
@@ -14,7 +14,7 @@
 |POST /api/surveys|登录+CSRF|标题/说明/匿名/策略/截止→201元数据，同时创建V1|
 |GET /api/surveys|登录|offset=0,limit=50(1..100)→本人{items,total}|
 |GET /api/surveys/{surveyId}|所有者|问卷元数据|
-|PATCH /api/surveys/{surveyId}|所有者+CSRF|title/description/deadlineAt/submissionPolicy→元数据|
+|PATCH /api/surveys/{surveyId}|所有者+CSRF|title/description/deadlineAt/submissionPolicy/statisticsContribution→元数据|
 |GET /api/surveys/{surveyId}/versions|所有者|{publishedVersion,draftVersion,items:完整版本列表}|
 |GET /api/surveys/{surveyId}/draft|所有者|草稿含revision，无草稿409|
 |PUT /api/surveys/{surveyId}/draft|所有者+CSRF|{expectedRevision,settings:{anonymous},questions}→revision+1草稿|
@@ -104,3 +104,33 @@ Cookie survey_session：HttpOnly、SameSite=Lax、max-age28800，生产Secure。
 |503|DATABASE_UNAVAILABLE，不泄露数据库异常|
 
 未知URL/不支持方法使用FastAPI标准detail；上述业务异常使用error结构。错误不回显密码或无效原始输入。网页401跳登录，旧版409提示刷新，关闭/过期显示禁止信息。
+
+
+## 第二阶段新增接口
+
+以下均要求登录，写入同时要求 CSRF。身份只取 Cookie；请求模型禁止多余字段。题目私有资源对未共享用户返回404，已共享用户尝试修改原题返回403。版本/草稿/题库 CAS 冲突409；非法配置422。可选 source 对旧请求兼容，返回字段为增量扩展。
+
+|方法 / 路径|请求与返回|
+|---|---|
+|POST /api/questions|{content:{type,title,required,options,validation}} →201 {definition,version}|
+|GET /api/questions|search≤200（字面量匹配）、scope=accessible/mine/shared、offset≥0、limit=20(1..100) → {items,total,offset,limit}|
+|GET /api/questions/{id}|基本信息、current、ownerUsername、canEdit；只有所有者看到sharedUsernames|
+|GET /api/questions/{id}/versions|offset / limit=50(1..100) →历史 {items,total,offset,limit}|
+|POST /api/questions/{id}/versions|{expectedCurrentVersion,parentVersion,content} →201新版本|
+|POST /api/questions/{id}/restore|{expectedCurrentVersion,version} →201追加恢复版本|
+|POST /api/questions/{id}/fork|{version} →201 {definition,version}，独立身份|
+|PATCH /api/questions/{id}/sharing|{usernames:[已注册用户名]≤100,expectedRevision} →{ok,revision}；空数组撤销|
+|PATCH /api/questions/{id}/archive|{archived:bool,expectedRevision} →{ok,revision}|
+|GET /api/questions/{id}/usage|version可选、offset / limit=20(1..100) →{items,total,visibility,...}，仅授权可见使用关系|
+|GET /api/questions/{id}/statistics|version必填，scope=mine/consented_shared，mode=current_effective/historical_raw →精确版本计数、分布与排除说明|
+|POST /api/question-banks|{name,description?} →201题库|
+|GET /api/question-banks|offset / limit=20(1..100) →本人题库分页|
+|GET /api/question-banks/{id}|成员含available；不可用成员不返回内容；可用成员含resolvedVersion/content|
+|PATCH /api/question-banks/{id}|{name,description?,expectedRevision} →题库|
+|PUT /api/question-banks/{id}/items|{questionId,pinnedVersion?:int或null,expectedRevision} →题库；同题upsert，固定/最新可切换|
+|DELETE /api/question-banks/{id}/items/{questionId}|query expectedRevision必填 →题库，原题与历史不删除|
+|POST /api/surveys/{id}/draft/import-question|{questionId,questionVersion,expectedRevision,replaceLocalId?:string或null} →revision+1的草稿；首次导入生成新ID，替换保留ID并清空出边|
+
+题库最多200成员。未固定版本的题库成员只在选题时解析最新；import-question始终提交明确版本。旧 PUT draft 仍可提交没有source的本地题；带source的核心内容必须与库中固定版本一致。删除source是明确解除关联。原 PATCH survey 新增 statisticsContribution（bool，默认false），仅所有者可改，null非法。其余旧接口请求与行为继续保留。
+
+跨问卷统计返回 questionId、questionVersion、type、scope、mode、surveyCount、submissionCount、answeredCount、countUnit、exclusions；选择题增加options[{id,label,count}]；数字题增加mean、distribution[{lower,upper,count}]与interval。文本不返回原文。所有跨问卷结果均不包含respondentId、用户名、原始答卷和外部问卷标识。数字分桶及小样本规则见[数据库设计](database-design.md)。

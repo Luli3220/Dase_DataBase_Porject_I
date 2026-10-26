@@ -1,0 +1,24 @@
+.F                                                                       [100%]
+================================== FAILURES ===================================
+____________ test_validator_indexes_and_nondestructive_initialize _____________
+
+db = Database(MongoClient(host=['127.0.0.1:27018'], document_class=dict, tz_aware=True, connect=True, replicaset='rs0', serverselectiontimeoutms=5000, connecttimeoutms=5000), 'survey_test_3ede10a3fd3341a585b0bbcc1de6d605')
+
+    def test_validator_indexes_and_nondestructive_initialize(db):
+        assert len(db.list_collection_names()) == 7
+        old = {'_id': ObjectId(), 'username': 'old_user', 'passwordHash': 'synthetic', 'schemaVersion': 1, 'createdAt': now()}
+        db.users.insert_one(deepcopy(old))
+        initialize(db); initialize(db)
+>       assert db.users.find_one({'_id': old['_id']}) == old
+E       AssertionError: assert {'_id': Objec...sion': 1, ...} == {'_id': Objec...sion': 1, ...}
+E         
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'createdAt': datetime.datetime(2026, 10, 26, 7, 26, 40, 73000, tzinfo=FixedOffset(datetime.timedelta(0), 'UTC'))} != {'createdAt': datetime.datetime(2026, 10, 26, 7, 26, 40, 73423, tzinfo=datetime.timezone.utc)}
+E         Use -v to get more diff
+
+tests\project2\test_data.py:26: AssertionError
+- generated xml file: E:\DBMS\Lab\Project1-1\docs\project2\evidence\stage-b.xml -
+=========================== short test summary info ===========================
+FAILED tests/project2/test_data.py::test_validator_indexes_and_nondestructive_initialize
+1 failed, 1 passed in 0.42s

@@ -1,0 +1,7 @@
+{
+  "/health": 200,
+  "/questions": 200,
+  "/question-banks": 200,
+  "/openapi.json": 200,
+  "runningApiVersion": "2.0.0"
+}

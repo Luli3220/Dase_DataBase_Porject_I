@@ -11,6 +11,7 @@ from app.core.config import Settings
 from app.core.errors import DomainError
 from app.db.mongo import client_for, initialize
 from app.api.routes import router
+from app.api.question_routes import router as question_router
 from app.core.body_limit import BodyLimitMiddleware
 
 ROOT = Path(__file__).parent
@@ -37,7 +38,7 @@ def create_app(settings=None, database=None):
         yield
         if client is not None: client.close()
 
-    application = FastAPI(title="问卷工坊 · MongoDB Survey", version="1.0.0", lifespan=lifespan)
+    application = FastAPI(title="问卷工坊 · MongoDB Survey", version="2.0.0", lifespan=lifespan)
     application.state.settings = cfg
     application.add_middleware(BodyLimitMiddleware)
 
@@ -78,6 +79,7 @@ def create_app(settings=None, database=None):
         return JSONResponse({"error": {"code": "DATABASE_UNAVAILABLE", "message": "数据库暂不可用，请稍后重试", "details": {}}}, 503)
 
     application.include_router(router)
+    application.include_router(question_router)
     application.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 
     @application.get("/health")
@@ -85,7 +87,7 @@ def create_app(settings=None, database=None):
         application.state.db.command("ping")
         return {"status": "ok"}
 
-    for path in ("/", "/login", "/register", "/dashboard", "/surveys/new", "/surveys/{survey_id}/edit", "/surveys/{survey_id}/preview", "/surveys/{survey_id}/statistics", "/survey/{public_id}"):
+    for path in ("/", "/login", "/register", "/dashboard", "/questions", "/questions/{question_id}", "/question-banks", "/question-banks/{bank_id}", "/surveys/new", "/surveys/{survey_id}/edit", "/surveys/{survey_id}/preview", "/surveys/{survey_id}/statistics", "/survey/{public_id}"):
         application.add_api_route(path, lambda: FileResponse(ROOT / "templates" / "index.html"), methods=["GET"], include_in_schema=False)
     return application
 

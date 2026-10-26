@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.401" timestamp="2026-10-26T15:26:39.810997+08:00" hostname="潇湘"><testcase classname="tests.project2.test_data" name="test_optional_source_round_trip" time="0.001" /><testcase classname="tests.project2.test_data" name="test_validator_indexes_and_nondestructive_initialize" time="0.201"><failure message="AssertionError: assert {'_id': Objec...sion': 1, ...} == {'_id': Objec...sion': 1, ...}&#10;  &#10;  Omitting 4 identical items, use -vv to show&#10;  Differing items:&#10;  {'createdAt': datetime.datetime(2026, 10, 26, 7, 26, 40, 73000, tzinfo=FixedOffset(datetime.timedelta(0), 'UTC'))} != {'createdAt': datetime.datetime(2026, 10, 26, 7, 26, 40, 73423, tzinfo=datetime.timezone.utc)}&#10;  Use -v to get more diff">db = Database(MongoClient(host=['127.0.0.1:27018'], document_class=dict, tz_aware=True, connect=True, replicaset='rs0', serverselectiontimeoutms=5000, connecttimeoutms=5000), 'survey_test_3ede10a3fd3341a585b0bbcc1de6d605')
+
+    def test_validator_indexes_and_nondestructive_initialize(db):
+        assert len(db.list_collection_names()) == 7
+        old = {'_id': ObjectId(), 'username': 'old_user', 'passwordHash': 'synthetic', 'schemaVersion': 1, 'createdAt': now()}
+        db.users.insert_one(deepcopy(old))
+        initialize(db); initialize(db)
+&gt;       assert db.users.find_one({'_id': old['_id']}) == old
+E       AssertionError: assert {'_id': Objec...sion': 1, ...} == {'_id': Objec...sion': 1, ...}
+E         
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'createdAt': datetime.datetime(2026, 10, 26, 7, 26, 40, 73000, tzinfo=FixedOffset(datetime.timedelta(0), 'UTC'))} != {'createdAt': datetime.datetime(2026, 10, 26, 7, 26, 40, 73423, tzinfo=datetime.timezone.utc)}
+E         Use -v to get more diff
+
+tests\project2\test_data.py:26: AssertionError</failure></testcase></testsuite></testsuites>

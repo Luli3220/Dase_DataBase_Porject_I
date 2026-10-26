@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="6" time="4.023" timestamp="2026-10-26T15:36:00.425739+08:00" hostname="潇湘"><testcase classname="tests.project2.test_statistics" name="test_number_distribution_exact_version_latest_across_versions" time="0.544" /><testcase classname="tests.project2.test_statistics" name="test_choice_across_surveys[single_choice-values0-counts0]" time="0.427" /><testcase classname="tests.project2.test_statistics" name="test_choice_across_surveys[multiple_choice-values1-counts1]" time="0.406" /><testcase classname="tests.project2.test_statistics" name="test_cross_user_consent_suppression_revocation_and_text_privacy" time="0.484" /><testcase classname="tests.project2.test_statistics" name="test_usage_visibility_elem_match_and_skipped_answers" time="1.200" /><testcase classname="tests.project2.test_statistics" name="test_usage_index_explain_and_migration" time="0.219"><failure message="bson.errors.InvalidBSON: 'utf-8' codec can't decode byte 0xe4 in position 0: invalid continuation byte">db = Database(MongoClient(host=['127.0.0.1:27018'], document_class=dict, tz_aware=True, connect=True, replicaset='rs0', serverselectiontimeoutms=5000, connecttimeoutms=5000), 'survey_test_0cf9af9da4634ff2bb2bc66a80785a2a')
+
+    def test_usage_index_explain_and_migration(db):
+        from scripts.migrate_project2 import migrate
+        from app.db.mongo import now
+        db.users.insert_one({'username': 'legacy', 'passwordHash': 'synthetic', 'createdAt': now(), 'schemaVersion': 1})
+        before = deepcopy(db.users.find_one())
+        assert migrate(db)['oldDocumentsUnchanged'] and migrate(db)['oldDocumentsUnchanged']
+        assert db.users.find_one() == before
+        query = {'questions': {'$elemMatch': {'source.questionId': ObjectId(), 'source.questionVersion': 1}}}
+&gt;       explained = db.command('explain', {'find': 'survey_versions', 'filter': query,
+            'hint': 'questions.source.questionId_1_questions.source.questionVersion_1'}, verbosity='executionStats')
+
+tests\project2\test_statistics.py:111: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\.venv\Lib\site-packages\pymongo\_csot.py:126: in csot_wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\.venv\Lib\site-packages\pymongo\synchronous\database.py:946: in command
+    return self._client._retryable_read(
+..\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py:2116: in _retryable_read
+    return self._retry_internal(
+..\.venv\Lib\site-packages\pymongo\_csot.py:126: in csot_wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py:2077: in _retry_internal
+    ).run()
+      ^^^^^
+..\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py:2947: in run
+    res = self._read() if self._is_read else self._write()
+          ^^^^^^^^^^^^
+..\.venv\Lib\site-packages\pymongo\synchronous\mongo_client.py:3187: in _read
+    return self._func(self._session, self._server, conn, read_pref)  # type: ignore
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\.venv\Lib\site-packages\pymongo\synchronous\database.py:934: in inner
+    return self._command(
+..\.venv\Lib\site-packages\pymongo\synchronous\database.py:773: in _command
+    return conn.command(
+..\.venv\Lib\site-packages\pymongo\synchronous\helpers.py:50: in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+..\.venv\Lib\site-packages\pymongo\synchronous\pool.py:430: in command
+    self._raise_connection_failure(error)
+..\.venv\Lib\site-packages\pymongo\synchronous\pool.py:576: in _raise_connection_failure
+    raise error
+..\.venv\Lib\site-packages\pymongo\synchronous\pool.py:405: in command
+    return run_command(
+..\.venv\Lib\site-packages\pymongo\synchronous\command_runner.py:440: in run_command
+    docs, _, _ = _run_command(
+..\.venv\Lib\site-packages\pymongo\synchronous\command_runner.py:205: in _run_command
+    docs = reply.unpack_response(codec_options=codec_options, user_fields=user_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\.venv\Lib\site-packages\pymongo\message.py:1134: in unpack_response
+    return bson._decode_all_selective(self.payload_document, codec_options, user_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\.venv\Lib\site-packages\bson\__init__.py:1300: in _decode_all_selective
+    return decode_all(data, codec_options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+data = &lt;memory at 0x000002333E20A5C0&gt;
+codec_options = CodecOptions(document_class=dict, tz_aware=False, uuid_representation=UuidRepresentation.UNSPECIFIED, unicode_decode_e...ne, type_registry=TypeRegistry(type_codecs=[], fallback_encoder=None), datetime_conversion=DatetimeConversion.DATETIME)
+
+    def decode_all(
+        data: _ReadableBuffer, codec_options: Optional[CodecOptions[_DocumentType]] = None
+    ) -&gt; Union[list[dict[str, Any]], list[_DocumentType]]:
+        """Decode BSON data to multiple documents.
+    
+        `data` must be a bytes-like object implementing the buffer protocol that
+        provides concatenated, valid, BSON-encoded documents.
+    
+        :param data: BSON data
+        :param codec_options: An instance of
+            :class:`~bson.codec_options.CodecOptions`.
+    
+        .. versionchanged:: 3.9
+           Supports bytes-like objects that implement the buffer protocol.
+    
+        .. versionchanged:: 3.0
+           Removed `compile_re` option: PyMongo now always represents BSON regular
+           expressions as :class:`~bson.regex.Regex` objects. Use
+           :meth:`~bson.regex.Regex.try_compile` to attempt to convert from a
+           BSON regular expression to a Python regular expression object.
+    
+           Replaced `as_class`, `tz_aware`, and `uuid_subtype` options with
+           `codec_options`.
+        """
+        if codec_options is None:
+            return _decode_all(data, DEFAULT_CODEC_OPTIONS)
+    
+        if not isinstance(codec_options, CodecOptions):
+            raise _CODEC_OPTIONS_TYPE_ERROR
+    
+&gt;       return _decode_all(data, codec_options)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       bson.errors.InvalidBSON: 'utf-8' codec can't decode byte 0xe4 in position 0: invalid continuation byte
+
+..\.venv\Lib\site-packages\bson\__init__.py:1209: InvalidBSON</failure></testcase></testsuite></testsuites>

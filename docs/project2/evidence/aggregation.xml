@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.987" timestamp="2026-10-26T15:46:44.300817+08:00" hostname="潇湘"><testcase classname="tests.project2.test_aggregation_plan" name="test_populated_source_index_and_server_aggregation" time="0.561" /></testsuite></testsuites>

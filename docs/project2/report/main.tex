@@ -1,0 +1,514 @@
+% Project 1 / Stage 2: serif academic report
+% Compile with XeLaTeX (two passes for references).
+\documentclass[UTF8,10pt,a4paper,twocolumn,fontset=none]{ctexart}
+\usepackage{fontspec}
+\IfFontExistsTF{Latin Modern Mono}{\setmonofont[Scale=0.88]{Latin Modern Mono}}{\setmonofont[Scale=0.88]{Consolas}}
+% Fixed fonts for Overleaf: avoid probing absent system fonts.
+\setmainfont{Times New Roman}
+\setsansfont{Times New Roman}
+% Load TeX-distributed CJK font files directly, with real bold/italic faces.
+\setCJKmainfont[
+  BoldFont=FandolSong-Bold.otf,
+  ItalicFont=FandolKai-Regular.otf
+]{FandolSong-Regular.otf}
+\setCJKsansfont[BoldFont=FandolSong-Bold.otf]{FandolSong-Regular.otf}
+\setCJKmonofont[BoldFont=FandolSong-Bold.otf]{FandolSong-Regular.otf}
+\usepackage[margin=17mm,top=19mm,bottom=19mm]{geometry}
+\setlength{\columnsep}{8mm}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,multirow}
+\usepackage{graphicx,float,caption,enumitem,xcolor,tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,shapes.geometric}
+\usepackage{fancyhdr,lastpage,microtype}
+\usepackage{titlesec,needspace,balance,etoolbox}
+\usepackage{fontawesome5}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{placeins}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usetikzlibrary{arrows.meta}
+% Black typography and restrained pastel diagrams.
+\definecolor{navy}{HTML}{202020}
+\definecolor{accent}{HTML}{326784}
+\definecolor{ink}{HTML}{222222}
+\definecolor{muted}{HTML}{555555}
+\definecolor{pale}{HTML}{EDF3F7}
+\definecolor{border}{HTML}{7294AA}
+\definecolor{softblue}{HTML}{EDF3F7}
+\definecolor{softcream}{HTML}{FAF4E8}
+\definecolor{softgreen}{HTML}{EFF5ED}
+\definecolor{softrose}{HTML}{FAEFEB}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=accent,citecolor=black,
+  pdftitle={基于 MongoDB 的在线问卷系统：版本化题目与增量演进},
+  pdfauthor={杨子炫}}
+\captionsetup{font={small,rm,color=black},labelfont=normalfont,
+  textfont=normalfont,labelsep=period,justification=justified,
+  singlelinecheck=false,skip=5pt}
+\captionsetup[figure]{singlelinecheck=true}
+\captionsetup[table]{position=top,skip=4pt,singlelinecheck=true}
+\titleformat{\section}{\bfseries\rmfamily\color{black}\fontsize{11.2pt}{14pt}\selectfont}{\thesection}{.55em}{}
+\titleformat{\subsection}{\bfseries\rmfamily\color{black}\fontsize{10.2pt}{13pt}\selectfont}{\thesubsection}{.5em}{}
+\titlespacing{\section}{0pt}{9pt plus 2pt}{4pt}
+\titlespacing{\subsection}{0pt}{7pt plus 2pt}{3pt}
+\pretocmd{\section}{\Needspace{5\baselineskip}}{}{}
+\pretocmd{\subsection}{\Needspace{4\baselineskip}}{}{}
+\linespread{1.10}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{1pt}
+\renewcommand{\arraystretch}{1.20}
+\setlength{\tabcolsep}{4pt}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setlist[itemize]{leftmargin=1.4em,topsep=2pt,itemsep=0pt,parsep=0pt}
+\newcommand{\term}[1]{\textbf{#1}}
+\newcommand{\file}[1]{\texttt{\footnotesize #1}}
+\newcommand{\decision}[1]{\textbf{#1}}
+\newcommand{\tblhead}[1]{\textbf{#1}}
+\newcommand{\figlabel}[1]{\footnotesize\rmfamily #1}
+\tikzset{
+  reportbox/.style={draw=accent,line width=.45pt,rounded corners=2pt,
+    text=black,align=center,inner sep=3pt},
+  reportarrow/.style={draw=accent,line width=.65pt},
+  reportlabel/.style={font=\scriptsize\rmfamily,text=black,inner sep=1pt}
+}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize\rmfamily\color{muted}数据库课程设计 · Project 1 / Stage 2}
+\fancyhead[R]{\footnotesize\rmfamily\color{muted}MongoDB Survey System}
+\fancyfoot[C]{\footnotesize\rmfamily\color{muted}\thepage\ / \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.25pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{13pt}
+\emergencystretch=2em
+\clubpenalty=10000
+\widowpenalty=10000
+\displaywidowpenalty=10000
+\raggedbottom
+
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily\fontsize{7.5pt}{9pt}\selectfont,breaklines=true,columns=fullflexible,keepspaces=true,frame=single,rulecolor=\color{border},xleftmargin=2pt,xrightmargin=2pt}
+
+\begin{document}
+\twocolumn[{
+\begin{center}
+{\small\rmfamily DATABASE SYSTEMS · COURSE PROJECT 1}\\[6pt]
+{\bfseries\fontsize{20pt}{26pt}\selectfont 基于 MongoDB 的在线问卷系统}\\[4pt]
+{\bfseries\fontsize{12pt}{16pt}\selectfont 版本化题目、共享题库与跨问卷统计的增量演进}\\[8pt]
+{\small 第二阶段项目完成报告 \quad | \quad 2026 年 10 月 26 日}\\[5pt]
+{\small 姓名：\underline{\makebox[20mm][c]{杨子炫}} \quad 学号：\underline{\makebox[28mm][c]{10245501483}}}\\[4pt]
+{\small\href{https://github.com/Luli3220/Dase_DataBase_Porject_I}{\faGithub\enspace\texttt{Luli3220/Dase\_DataBase\_Porject\_I}}}
+\end{center}
+\vspace{1mm}
+\noindent\begin{minipage}{\textwidth}
+\small\setlength{\parindent}{2em}
+\noindent\textbf{摘要}\quad
+第二阶段根据用户提出的八项变更需求，在第一阶段在线问卷系统上增加常用题目复用、跨用户共享、版本追踪与恢复、题库管理、使用关系查询和跨问卷统计。新的使用方式使题目具有独立于问卷的生命周期，而已发布问卷仍须保持历史内容稳定。为此，系统保留原四集合及问卷版本内嵌结构，新增题目定义、不可变题目版本和题库三个集合，采用“稳定身份、精确版本引用与问卷内快照”相结合的模型。在原有 FastAPI、PyMongo、规则引擎及前端上完成增量改造，通过事务与乐观锁处理版本分配、来源校验和共享撤销竞态，并以问卷级贡献授权控制跨用户聚合。最终在真实 MongoDB 与 Chromium 环境执行 150 项测试，其中原有 113 项与新增 37 项全部通过；连续两次升级审计确认原四集合文档指纹不变。本文依次分析变更需求、回顾原设计、解释数据库与架构演进，并给出实现、兼容性、测试及 AI 使用过程。
+\end{minipage}
+\par\vspace{5pt}\noindent\rule{\textwidth}{0.35pt}\vspace{3pt}
+}]
+
+\section{项目目标与需求变化}
+\subsection{从问卷编辑转向题目管理}
+第一阶段围绕“创建、发布、填写和统计一份问卷”构建系统。用户需要登录后创建问卷，配置四类题型、答案约束与条件跳转，通过公开链接收集回答，并查看结果。第二阶段的反馈表明，一些题目会在不同问卷中反复出现，例如年龄、课程体验或通用调查项。重新录入不仅低效，还难以统一管理题目含义及其修改过程。
+
+八项新需求可以归纳为三组：一是\term{管理与协作}，包括保存常用题、跨用户共享和建立题库；二是\term{稳定性与演进}，包括修改不影响旧问卷、历史追踪与恢复、多版本并存；三是\term{关联查询与分析}，包括反查使用问卷及跨问卷单题统计。三者相互关联：只有题目具有稳定身份，才能可靠识别复用关系；只有内容固定到具体版本，才能解释历史答案并确定统计口径。
+
+\begin{table}[t]
+\centering\small
+\caption{八项变更需求及其验收含义}
+\label{tab:requirements}
+\begin{tabularx}{\columnwidth}{@{}p{5mm}p{25mm}Y@{}}
+\toprule ID & 需求 & 实现与验收重点\\\midrule
+R1 & 常用题复用 & 独立建题，跨问卷导入固定版本\\
+R2 & 跨用户共享 & 后端授权，使用权与修改权分离\\
+R3 & 旧问卷稳定 & 库题变化不修改已发布快照\\
+R4 & 历史与恢复 & 记录父版本，恢复追加新版本\\
+R5 & 多版本共存 & A 用旧版，B 用新版，互不漂移\\
+R6 & 使用关系 & 身份与精确版本反查，过滤权限\\
+R7 & 题库管理 & 有界成员引用，固定或选题时最新\\
+R8 & 跨问卷统计 & 精确版本、有效答卷、授权聚合\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{变更中的约束与边界}
+课程明确要求第二阶段不得丢弃第一阶段成果。因此，本阶段既要形成新增能力的闭环，也要保留注册登录、草稿预览、发布、跳转、校验、匿名、重复填写、幂等提交及原统计行为。不能通过复制另一套源码、清空数据库或替换原问卷模型来满足需求。
+
+这里还需要区分三个容易混淆的概念。\term{共享题目}意味着允许读取并在自己的问卷中使用；\term{共享修改权}意味着能够改变原题定义，本系统不向被共享者默认授予该权利；\term{贡献统计数据}涉及其他问卷所有者所收集的回答，需要独立授权。题目创建者不能仅凭“别人使用了我的题”读取对方原始答卷。
+
+本阶段以原课程任务书和《大作业一：需求变更》为需求依据，以用户提供的实施 Prompt 为细化契约。原第一阶段最终 Commit 为 \texttt{61e2263}，本地建立基线标签 \texttt{project1-baseline-61e2263}，在独立分支 \texttt{project2/question-library} 上开发。本次改动尚未提交或推送，报告中的仓库链接提供项目入口，不表示远程已包含当前工作树。
+
+\section{第一阶段关键设计回顾}
+\subsection{四集合及原有关系}
+第一阶段采用四集合组织账号、问卷、内容快照和答卷，如表~\ref{tab:oldmodel} 所示。\texttt{surveys} 保存问卷级元信息及公开版本指针；\texttt{survey\_versions} 保存某一版完整内容；\texttt{submissions} 独立保存每次成功提交。问卷版本内的题目包含局部 ID、题型、标题、选项、校验及跳转规则，答案通过局部题目 ID 与对应问卷版本关联。
+
+\begin{table}[t]
+\centering\small
+\caption{保留的四集合及其职责}
+\label{tab:oldmodel}
+\begin{tabularx}{\columnwidth}{@{}p{29mm}Y@{}}
+\toprule 集合 & 原职责及第二阶段处理\\\midrule
+\texttt{users} & 账号、密码哈希及会话版本；职责保留\\
+\texttt{surveys} & 所有者、链接、状态、发布/草稿指针与重复策略；新增贡献设置\\
+\texttt{survey\_versions} & 题目、选项、规则的整体快照；题目增可选来源\\
+\texttt{submissions} & 版本、填写者、匿名快照、请求标识与答案；结构与提交逻辑保留\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+这个模型并非因为出现新需求就失去合理性。公开填写主要需要一次读取完整问卷，配置规模有界，题目、选项和路由必须随版本一起冻结，适合嵌入；答卷和历史版本会持续增长，应独立存储。第二阶段继续保留这一聚合边界，避免把每个选项、规则和答案机械地拆成大量集合。
+
+\subsection{服务架构与一致性机制}
+原系统使用同源 HTML、CSS 和原生 JavaScript 调用 FastAPI，后端由严格请求模型、身份与 CSRF 检查、独立业务服务、纯函数规则引擎及 PyMongo 组成。规则引擎负责配置验证和服务器端路径重算，服务层负责权限、状态与持久化。
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[node distance=5mm,>=Latex,font=\small]
+\node[reportbox,fill=softblue,text width=72mm] (ui) {原前端：问卷编辑 / 填写 / 统计\\增量入口：题目 / 历史 / 题库};
+\node[reportbox,fill=softcream,text width=72mm,below=of ui] (api) {FastAPI · 严格模型 · Cookie / CSRF / 权限};
+\node[reportbox,fill=softgreen,text width=72mm,below=of api] (svc) {原服务：问卷 / 提交 / 单问卷统计\\新服务：题目 / 题库 / 跨问卷统计};
+\node[reportbox,fill=softrose,text width=72mm,below=of svc] (db) {原规则引擎 + PyMongo 事务 / CAS / 聚合\\MongoDB：原四集合 + 新三集合};
+\draw[reportarrow,->] (ui)--(api);\draw[reportarrow,->] (api)--(svc);\draw[reportarrow,->] (svc)--(db);
+\end{tikzpicture}
+\caption{沿原架构增加题目生命周期相关职责，保留原填写与规则路径。}
+\label{fig:architecture}
+\end{figure}
+
+原草稿使用 \texttt{revision} 乐观锁；发布先冻结为 \texttt{sealed}，再切换公开指针，支持冻结后中断的重试恢复。提交通过事务核验问卷状态、截止时间和版本，重算答案路径，保存匿名快照，并利用请求标识识别幂等重试。\texttt{latest\_only} 在整份问卷的全部版本中选每人的最新答卷，再筛选目标版本。这些机制均继续保留，新增题目复用不能改变其语义。
+
+\subsection{原模型在新需求下的限制}
+原 \texttt{questions[].id} 是问卷内实例标识，不能表示跨问卷的同一题目。复制内容后，系统无法判断两个相同标题是否语义相同、是否来自共同版本，或者只是偶然同名。原模型也缺少独立的题目所有者、共享范围、父版本和题库成员关系。
+
+因此，问题并不是“原来不该嵌入题目”，而是\term{新的生命周期需要新的稳定身份}。新的身份用于管理题目演进；原问卷快照继续用于历史填写与答案解释。两种访问模式需要同时成立。
+
+\section{MongoDB 数据模型的增量演进}
+\subsection{方案比较与聚合边界}
+本阶段比较了纯复制、实时引用最新内容、定义内嵌历史以及独立版本加快照四种方案。纯复制无法追踪身份；引用可变最新题会改变旧问卷；把所有历史嵌入一个定义又存在无界增长和写入竞争。因此采用\term{稳定定义、独立不可变版本、问卷内固定快照}。
+
+\begin{table*}[t]
+\centering\small
+\caption{题目复用方案比较}
+\label{tab:alternatives}
+\begin{tabularx}{\textwidth}{@{}p{31mm}Y Y p{23mm}@{}}
+\toprule 方案 & 主要收益 & 新需求下的问题 & 本阶段选择\\\midrule
+复制题目内容 & 原读取路径简单，旧问卷自然独立 & 丢失共同身份、历史谱系和可靠统计关联 & 不单独采用\\
+只引用最新内容 & 内容集中，修改立即传播 & 旧问卷变化，旧答案解释与统计口径漂移 & 不采用\\
+定义内嵌全部版本 & 单题历史一次读取 & 历史持续增长、文档上限及并发热点 & 不采用\\
+稳定身份 + 独立版本 + 快照 & 可追溯、可共享，历史读取独立 & 存在受控冗余，需要强制来源一致性 & 采用\\\bottomrule
+\end{tabularx}
+\end{table*}
+
+MongoDB 的适配点在于：每个具体题目内容、每个问卷版本和每份答卷各自具有紧密的内部结构，适合文档组织；题目与问卷之间的新复用关系则通过引用表达。关系数据库同样能够实现这些功能，但课程限定 MongoDB，且完整问卷读取和版本整体冻结仍使有界嵌入具有实际价值。本阶段没有为了复用而把系统重构为模拟规范化关系表的集合网络。
+
+\subsection{七集合与稳定来源}
+\texttt{question\_definitions} 保存题目稳定身份、所有者、当前版本指针、共享用户、归档状态及修订号；\texttt{question\_versions} 独立保存每次具体内容和版本关系；\texttt{question\_banks} 保存个人题库及其有界成员引用。图~\ref{fig:seven} 展示新增对象与原集合之间的关系。
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[>=Latex,font=\small,entity/.style={reportbox,minimum height=11mm,text width=39mm},lbl/.style={reportlabel,fill=white}]
+\node[entity,fill=softblue] (u) at (0,0) {\texttt{users}\\账号身份};
+\node[entity,fill=softblue] (s) at (5.5,0) {\texttt{surveys}\\元信息与版本指针};
+\node[entity,fill=softblue] (sv) at (11,0) {\texttt{survey\_versions}\\题目与路由快照};
+\node[entity,fill=softgreen] (d) at (0,-2.2) {\texttt{question\_definitions}\\题目稳定身份与权限};
+\node[entity,fill=softgreen] (v) at (5.5,-2.2) {\texttt{question\_versions}\\不可变具体内容};
+\node[entity,fill=softblue] (a) at (11,-2.2) {\texttt{submissions}\\答案与匿名快照};
+\node[entity,fill=softcream] (b) at (0,-4.3) {\texttt{question\_banks}\\有界成员引用};
+\draw[reportarrow,->] (u)--node[lbl,above]{1:N 所有者}(s);
+\draw[reportarrow,->] (s)--node[lbl,above]{1:N 版本}(sv);
+\draw[reportarrow,->] (u)--node[lbl,left]{1:N}(d);
+\draw[reportarrow,->] (d)--node[lbl,above]{1:N 追加版本}(v);
+\draw[reportarrow,->] (v.north east)--node[lbl,sloped,above]{精确来源 + 内容快照}(sv.south west);
+\draw[reportarrow,->] (sv)--node[lbl,right]{版本解释}(a);
+\draw[reportarrow,->] (b)--node[lbl,left]{成员引用}(d);
+\node[align=left,text width=84mm,font=\footnotesize] at (8.1,-4.15) {蓝色：保留原集合；绿色：新增题目身份与内容；浅黄：新增题库。\\来源是题目版本引用，填写仍读取问卷内冻结快照。\\用户与题库、答卷的所有者/填写关系为简洁起见省略。};
+\end{tikzpicture}
+\caption{七集合关系及数据职责。新题目生命周期与原问卷聚合边界并存。}
+\label{fig:seven}
+\end{figure*}
+
+定义文档不嵌入所有版本，题库不复制题目内容，反查也不维护无限增长的 \texttt{usedBy[]}。题库最多 200 个成员、共享用户最多 100 个、每份问卷最多 100 题，延续有界配置与独立增长记录的设计原则。
+
+原问卷题目新增可选字段：
+\begin{lstlisting}
+source: {
+  questionId: ObjectId("..."),
+  questionVersion: 2
+}
+\end{lstlisting}
+这里的全局题目身份不同于局部 \texttt{id}。相同题目导入两份问卷时，\texttt{source} 相同，但各自获得新的局部 ID。后者用于本卷路由和答案定位，前者用于题目溯源及跨问卷关联。一个问卷版本中最多出现同一全局题目的一个实例，避免跨题统计重复计算。
+
+\subsection{不可变版本、父链与恢复}
+题目版本保存 \texttt{questionId}、\texttt{version}、\texttt{parentVersion}、\texttt{changeType}、\texttt{restoredFromVersion}、\texttt{content}、创建者与时间。版本号在同题下单调递增，但 \texttt{parentVersion} 可以指向任意旧版，不能假定 v3 必然由 v2 修改而来。
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[>=Latex,font=\small,node distance=8mm and 9mm]
+\node[reportbox,fill=softgreen] (v1) {Q / v1};
+\node[reportbox,fill=softgreen,right=of v1] (v2) {Q / v2};
+\node[reportbox,fill=softcream,below=of v1] (v3) {Q / v3\\恢复 v1};
+\node[reportbox,fill=softrose,below=of v2] (f) {F / v1\\独立 fork};
+\draw[reportarrow,->] (v1)--node[reportlabel,above]{parent=1}(v2);
+\draw[reportarrow,->] (v1.south)--node[reportlabel,left]{parent=1}(v3.north);
+\draw[reportarrow,->] (v2.south)--node[reportlabel,right]{forkedFrom}(f.north);
+\end{tikzpicture}
+\caption{版本顺序、同题父链和跨题派生分别建模；恢复追加新版本。}
+\label{fig:lineage}
+\end{figure}
+
+恢复将指定旧版本内容复制为一个新版本，同时记录恢复来源，原版本不改写。被共享者若要独立维护，使用 fork 创建新的全局身份，并在新定义中保存 \texttt{forkedFrom}。它与同题父链分别表达跨题来源和同题历史，避免混用。
+
+库题版本只保存题型、标题、必答、选项和校验，不保存 \texttt{routingRules}。原路由目标使用问卷局部 ID，跨问卷复用这些目标既无意义，也可能指向不存在的题目。路由仍由问卷实例独立配置。
+
+\subsection{固定引用与快照的一致性}
+导入时，服务器读取精确版本，将完整内容物化进草稿，同时保存来源。发布和填写继续依赖原 \texttt{survey\_versions} 快照，不实时读取题库最新内容。因此库题更新、共享撤销或归档均不会改变已经收集数据的问卷。
+
+受控冗余还带来一项必须满足的约束：\term{快照核心内容必须与声明的来源一致}。若保留 Q/v1 来源却直接修改标题、选项或数字约束，后续跨问卷聚合将错误地把不同含义合并。本系统在后端对来源内容逐项比较，发现不一致返回 \texttt{SOURCE\_MISMATCH}。用户可以明确解除关联成为本地题，或者通过新版本、fork 和显式导入表达内容变化。
+
+已经导入的合法来源允许在共享撤销后继续保存，避免外部权限变化使自己的问卷无法维护；新增来源或升级到新版本仍须重新获得访问权限。这个区别保护了既有快照，也没有把历史引用变成永久的新版本使用权。
+
+\subsection{BSON、Schema 与索引}
+网络接口用字符串传递 ObjectId，持久化映射将 \texttt{source.questionId} 转为 BSON ObjectId，读取时支持反向转换。请求模型继续禁止未知字段，MongoDB 验证器同时约束新集合与可选来源，防止模型接受但数据库拒绝，或者保存后来源丢失。
+
+新增的核心唯一索引为题目版本的 \texttt{(questionId, version)}。题目定义按所有者/更新时间查询，并对共享用户建立索引；题库按所有者/更新时间查询。问卷来源的复合多键索引包含全局题目 ID 和版本，两者经过同一个 \texttt{questions} 数组。
+
+反查必须使用同一 \texttt{\$elemMatch} 绑定身份与版本。若一份问卷同时包含 Q/v1 和 R/v2，独立判断“存在 Q”与“存在 v2”会误匹配 Q/v2；测试专门覆盖这一情况。索引增加存储和写放大，因此只为主要查询和唯一性需求建立，没有额外维护反向冗余数组。
+
+\section{业务模块与前端的原位改造}
+\subsection{职责拆分与旧功能保留}
+新增 \texttt{questions.py} 负责题目创建、版本、恢复、fork、共享和来源一致性；\texttt{question\_banks.py} 负责个人题库及成员；\texttt{question\_statistics.py} 负责反向关系与跨问卷聚合。新增路由模块复用原身份依赖和错误边界。原问卷服务增加导入与事务内来源检查，原规则、认证、提交和单问卷统计模块继续承担原职责。
+
+原 \texttt{main.py} 只增加新路由及页面入口；预览接口补充来源 ObjectId 序列化。没有另建 \texttt{source\_project2} 或替代应用。完整文件分类见表~\ref{tab:changes}，基线差异可通过 Git 复核。
+
+\begin{table*}[t]
+\centering\small
+\caption{增量实现中的保留、修改与新增范围}
+\label{tab:changes}
+\begin{tabularx}{\textwidth}{@{}p{28mm}p{66mm}Y@{}}
+\toprule 分类 & 主要路径/模块 & 改动目的或保留含义\\\midrule
+保留原业务代码 & \texttt{rules/engine.py}；认证、提交、单问卷统计服务；原安全边界 & 保持题型校验、路径重算、匿名、幂等与旧统计语义\\
+直接修改原代码 & \texttt{models}、\texttt{db/mongo.py}、问卷服务、原路由和应用装配 & 增加来源/新模型/验证器/索引，来源检查与固定版本导入\\
+直接修改原前端 & \texttt{app.js}、\texttt{style.css}、\texttt{index.html} & 沿原页面增加题目、题库、历史、共享和统计入口\\
+新增业务模块 & 题目、题库、跨问卷统计三个服务及 \texttt{question\_routes.py} & 将不同生命周期和查询职责独立组织\\
+新增迁移与测试 & \texttt{migrate\_project2.py}、\texttt{tests/project2/} & 无损升级、权限/并发/统计/浏览器测试\\
+当前规范原位维护 & 原 \texttt{docs/} 的数据库、系统、API、OpenAPI、规则和各 README & 反映当前完整系统，不维护两套互相矛盾的规范\\
+新增阶段材料 & \texttt{docs/project2/} 的演进、测试、AI 日志、证据和报告 & 与第一阶段历史记录严格分开\\\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{创建、共享与题库管理}
+题目默认私有。所有者可按已注册用户名授予或撤销共享，后端归一化用户名、去重并检验账号存在。未被共享用户猜测题目 ID 时返回 404；共享用户能够读取和复用，但不能修改原题、共享范围或历史。需要独立维护时，界面提供 fork。
+
+题库属于个人，可以添加自己或被共享的题目。同一题可以加入多个题库，但同库成员按题目身份 upsert，避免重复；成员修改带 \texttt{expectedRevision}，过期修订返回冲突。移除成员不删除题目或历史版本。
+
+成员可固定到某版，或者在选题时读取最新指针。后者只影响选择时的默认展示，最终导入仍明确指定版本。撤销共享或归档后，题库可保留一个不可用成员供移除，但不再返回其内容或允许新导入。
+
+\subsection{导入、升级与局部编辑}
+导入事务依次检查问卷所有者、草稿状态、期望修订、题目访问权限和精确版本，再生成新局部 ID、物化内容、复用原规则校验并更新草稿。导入不修改已发布版本。问卷题数上限、局部 ID 唯一和全局来源不重复均由后端校验。
+
+显式替换版本时保留当前局部 ID，使其他题目指向它的入边仍有效；本题原有出边清空，并重新校验整份问卷，避免新类型/选项沿用失效规则。解除来源后，本题成为普通本地副本，不再参与原全局题目的跨问卷统计。已有问卷本地题可以明确保存为常用题，但不会反向填充已经冻结历史版本的来源。
+
+前端沿用原安全转义与错误提示，来源题核心控件锁定，路由控件仍可独立配置，明确提供“解除关联后编辑”与“选择版本替换”。选题器支持题库范围、搜索、具体版本及历史分页，移动端保持原响应式布局。
+
+\subsection{并发与权限撤销}
+新版本分配在事务内读取 \texttt{currentVersion}，核验期望值后 CAS 加一，并由唯一索引兜底，不使用 \texttt{count()+1}。两个请求基于同一期望版本时，最多一个成功，另一个重试后看到新指针并返回 409。
+
+共享撤销和新引用存在跨文档竞态：单纯先读权限再写草稿，可能在权限撤销后仍提交。系统在导入、fork 和题库选用事务内写题目定义 \texttt{revision}，与撤销共享、归档争用同一文档；MongoDB 冲突重试后重新读取权限。成功导入与成功撤销可解释为一个合法先后顺序，不把旧快照当作权限泄漏。
+
+草稿保存也改为事务，使来源验证和 revision 更新一起提交。发布对草稿的冻结写入会与并发导入冲突；测试验证仅一方使用原期望修订成功，冻结快照不会出现一半导入的内容。原提交与关闭、发布之间的问卷写入序列化继续保留。
+
+\section{跨问卷单题统计}
+\subsection{精确版本与有效答卷选择}
+跨问卷统计通过全局题目 ID 与精确 \texttt{questionVersion} 识别使用实例，再根据该问卷内的局部 ID 关联答案。不同版本不因同名而合并，无来源的旧本地题也不自动猜测其等价关系。
+
+有效口径需继承原重复填写策略。对于 \texttt{latest\_only}，先在每份问卷的全部版本中选同一填写者最新答卷，然后判断所选答卷是否属于目标来源版本。若先筛旧版再选最新，会在该用户已提交新版时错误地保留旧版。对于 \texttt{multiple} 和历史原始口径，则保留每份提交。
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[>=Latex,font=\small,node distance=4mm]
+\node[reportbox,fill=softcream,text width=70mm] (p) {确定本人 / 显式贡献的授权问卷};
+\node[reportbox,fill=softblue,text width=70mm,below=of p] (s) {按每份问卷策略，在全部版本选有效答卷};
+\node[reportbox,fill=softgreen,text width=70mm,below=of s] (v) {匹配精确题目版本与局部实例};
+\node[reportbox,fill=softrose,text width=70mm,below=of v] (a) {过滤实际答案，抑制外部小样本，执行聚合};
+\draw[reportarrow,->] (p)--(s);\draw[reportarrow,->] (s)--(v);\draw[reportarrow,->] (v)--(a);
+\end{tikzpicture}
+\caption{先选择有效答卷，再过滤题目版本，保持原跨版本去重语义。}
+\end{figure}
+
+\texttt{submissionCount} 表示所选且含目标实例快照的答卷次数；\texttt{answeredCount} 只统计存在实际答案的记录。路径跳过题不计回答数。跨问卷中同一个人填写多份问卷仍是多次提交，因此结果明确使用“提交次数”，不误称跨问卷独立人数。
+
+\subsection{分布与数据库聚合}
+统计在 MongoDB 内通过 \texttt{\$lookup}、\texttt{\$filter}、\texttt{\$group} 和 \texttt{\$facet} 完成，没有把全部答案加载到应用后再计算。单选按选项 ID 计数；多选展开各选项；数字返回均值和分布；文本仅返回计数，原文仍可在自己拥有的单问卷统计中查看。
+
+年龄类数字采用区间 $(-\infty,0)$、$[0,18)$、$[18,30)$、$[30,45)$、$[45,60)$、$[60,121)$ 与 $[121,+\infty)$。内部均为左闭右开，开放尾部用空边界表示，支持负数、小数和安全范围极值。各桶计数之和等于实际回答数，空数据均值为 null。
+
+均值使用全部选中实际答案而非分页样本：
+\begin{equation}
+\bar{x}=\frac{\sum_{i=1}^{n}x_i}{n},\qquad n=\text{实际数字回答次数}.
+\end{equation}
+数字题仍复用原有限安全数值约束，拒绝布尔、数值字符串和超出安全范围的输入。本阶段未允许跨不同题目版本自动合并统计，也未声称不同版本可直接视为相同测量尺度。
+
+\subsection{跨用户授权与输出限制}
+默认 \texttt{mine} 只汇总本人问卷。\texttt{consented\_shared} 在此基础上加入问卷所有者显式开启 \texttt{statisticsContribution} 的数据，旧问卷缺省为 false。外部问卷在当前查询口径下不足 3 次实际回答时整体抑制；贡献撤销后，新查询立即排除，历史答卷不修改。
+
+跨问卷结果不返回 \texttt{respondentId}、用户名、原始文本、完整答卷或外部问卷 ID。使用关系查询则仅显示自己的全部版本，以及当前仍可公开访问的他人问卷；他人私有问卷的名称和数量均不披露。能够看见公开使用关系，不等于能够查看其回答。
+
+同次统计在只读 snapshot 事务内确定授权、抑制范围和结果，避免响应内部口径漂移。3 次阈值属于基础小样本抑制，不能等同差分隐私，也不是防止所有差分查询推断的证明。
+
+\section{兼容性、迁移与可追溯性}
+\subsection{不改写旧快照与旧答卷}
+来源是可选字段，旧题不带 source 仍能保存、发布、填写与统计；贡献设置缺省按 false 解释。文档格式 \texttt{schemaVersion} 保持 1，题目内容版本、问卷内容版本和草稿 revision 各自保留不同含义。本轮没有按标题合并旧题，没有给冻结版本倒填来源，也没有改写旧答卷。
+
+新增迁移脚本只安装七集合验证器与索引，并对原四集合按规范 BSON JSON、固定顺序计算文档指纹，比较升级前后结果。执行时应暂停其他业务写入，否则正常并发写也会使前后指纹不同。指纹审计不是可恢复备份，升级前仍应进行数据库备份。
+
+\begin{table}[t]
+\centering\small
+\caption{原开发数据库的连续两次升级审计}
+\label{tab:migration}
+\begin{tabularx}{\columnwidth}{@{}p{30mm}rY@{}}
+\toprule 原集合 & 文档数 & 两次执行结果\\\midrule
+\texttt{users} & 6 & 前后指纹均一致\\
+\texttt{surveys} & 3 & 前后指纹均一致\\
+\texttt{survey\_versions} & 6 & 前后指纹均一致\\
+\texttt{submissions} & 6 & 前后指纹均一致\\\bottomrule
+\end{tabularx}
+\end{table}
+
+本轮真实连接原 \texttt{survey\_dev} 连续执行两次迁移，21 份原文档指纹均保持一致，结果见表~\ref{tab:migration}。测试另用随机命名的独立数据库，每个用例只清理自己创建的测试库；未删除开发数据目录或原记录。
+
+\subsection{当前规范与阶段证据分离}
+当前完整数据库、系统、API、OpenAPI 和规则说明仍在原 \texttt{docs/} 路径更新，使使用者只需查一套现行规范。第一阶段的测试报告、用例、AI 日志及证据保持原样，第二阶段过程材料集中到 \texttt{docs/project2/}。旧测试源文件和历史证据有 SHA256 清单，可在最终审计中比较。
+
+原测试脚本及证据构建脚本的默认输出路径也改到第二阶段目录，避免以后一次运行覆盖第一阶段记录。OpenAPI 从实际 FastAPI 应用导出，检查原接口仍存在，并与运行时路由一致。没有把第一阶段历史 113 passed 冒充当前结果。
+
+回退应停止写入、保留第二阶段备份，在独立环境检出基线并恢复升级前备份。第一阶段严格模型不识别新 source，不能承诺仅回退代码就能编辑所有第二阶段文档；不能通过删除 source 或改写历史伪造兼容。本轮未实际执行备份恢复或生产回滚。
+
+\section{测试设计与真实结果}
+\subsection{先验证基线，再验证增量}
+开始实现前，在真实 MongoDB 单节点副本集及 Chromium 环境运行原测试，113 项通过，耗时 29.55 秒。随后按数据层、题目/题库、问卷集成、使用关系/统计及前端逐阶段验证。原 113 项测试没有删除、跳过或弱化；增量 UI 后原功能再次全部通过，耗时 25.27 秒。
+
+最终在同一条 pytest 命令执行全部测试，得到\term{150 passed，0 failed，0 errors，0 skipped，耗时 43.57 秒}，其中原有 113 项、新增 37 项。分组见表~\ref{tab:tests}。阶段运行会与完整回归重复，不能把各次通过数相加充当独立用例总数。
+
+\begin{table}[t]
+\centering\small
+\caption{最终同次完整回归的测试组成}
+\label{tab:tests}
+\begin{tabularx}{\columnwidth}{@{}Yrr@{}}
+\toprule 测试范围 & 用例数 & 通过数\\\midrule
+第一阶段原有全部测试 & 113 & 113\\
+新模型、Schema、索引兼容 & 2 & 2\\
+题目、版本、共享与题库 & 16 & 16\\
+固定版本导入与来源约束 & 3 & 3\\
+跨问卷统计与使用关系 & 6 & 6\\
+权限边界及并发竞态 & 8 & 8\\
+双账号浏览器端到端 & 1 & 1\\
+千份答卷与查询计划审计 & 1 & 1\\\midrule
+合计 & 150 & 150\\\bottomrule
+\end{tabularx}
+\end{table}
+
+环境为 Windows、Python 3.11.5、MongoDB 8.3.11、FastAPI 0.115.7、PyMongo 4.19.0、Pydantic 2.12.5、pytest 8.4.2 与 Playwright 1.64.0。测试使用原项目独立虚拟环境，浏览器服务自动在本地 8001 端口启动，不使用模拟数据库替代事务与聚合。
+
+\subsection{覆盖范围与可复核证据}
+新增测试包括四题型的合法/非法内容、私有/共享权限、用户名验证、历史父链、恢复、fork、固定与最新题库成员、来源防伪、全局重复题、旧快照稳定、反查多键误配、选择题频数、数字边界、空数据、跳题、授权撤销及匿名输出。
+
+并发测试覆盖同期期望版本下追加题目版本、题库修改、草稿导入，以及共享撤销对导入、发布对导入的竞态。结果不仅检查“接口成功”，还检查无重复版本、不丢失更新、旧快照不变以及失败后的明确冲突和重试路径。
+
+全部步骤、输入、预期和实际断言对应 \texttt{test-cases.md}；原始输出与 JUnit 位于第二阶段 evidence 目录；最终逐项结果由实际 JUnit 生成。完整测试命令为：
+\begin{lstlisting}
+# working directory: source/
+../.venv/Scripts/python.exe -m pytest -q --junitxml=../docs/project2/evidence/full.xml
+\end{lstlisting}
+运行前将 \texttt{TEST\_EVIDENCE\_DIR} 指向第二阶段 \texttt{full-browser} 目录。PowerShell 用户也可运行维护后的 \texttt{scripts/run-tests.ps1}。
+
+\subsection{双账号真实流程与统计示例}
+浏览器测试先注册 A、B 两个随机账号。A 创建年龄题并共享给 B，建立题库，双方在自己的问卷中导入 v1；B 明确开启问卷数据贡献。随后通过真实填写页面提交表~\ref{tab:sample} 的数据。
+
+\begin{table}[t]
+\centering\small
+\caption{双账号浏览器流程中的真实统计输入与输出}
+\label{tab:sample}
+\begin{tabularx}{\columnwidth}{@{}p{24mm}Yp{21mm}@{}}
+\toprule 范围 & 年龄输入 & 结果\\\midrule
+A 自有问卷 & 18 & 均值 18\\
+B 已授权问卷 & 24、30、45（multiple） & 3 次实际回答\\
+A 加已授权贡献 & 18、24、30、45 & 均值 29.25\\\bottomrule
+\end{tabularx}
+\end{table}
+
+A 再更新为 v2，并从 v1 恢复追加 v3，旧问卷仍显示 v1 原内容。页面展示使用关系及精确版本统计，390px 移动端无水平溢出、无 JavaScript 异常。截图保存原题库页、来源快照、题目历史与统计及手机页，均来自实际浏览器，不使用设计稿充当运行证据。
+
+\subsection{查询计划与规模边界}
+另在独立真实数据库中插入 1,000 份符合持久化模型的合成数字答卷，值为 0 至 999。聚合得到回答数 1,000、均值 499.5，分桶合计 1,000；来源反查实际采用 IXSCAN，返回 1 份文档，检查 1 个键、1 份文档。该审计验证聚合正确性和来源索引可用性。
+
+这不是生产容量压测。实时跨问卷聚合仍随候选问卷和答卷增长产生成本，当前没有预聚合或缓存。没有把小样本执行时间外推为大规模固定延迟，也没有声称验证 Docker、其他浏览器引擎、公网 HTTPS、多节点故障切换或备份恢复。
+
+\section{问题发现、修正与 AI 使用}
+\subsection{实际遇到的问题}
+开发过程保留了失败记录，而不是只保留最终通过截图。主要问题如下。
+
+\term{运行宿主中的 Mongo 持续性。} 原后台启动方式出现连接不稳定，后复用现有数据目录，以受托管前台进程维持 Mongo，再运行基线及后续测试。没有通过删除锁文件或重建数据库解决环境问题。
+
+\term{BSON 时间精度比较。} 新数据层测试第一次出现 1 failed、1 passed，因为将 Python 微秒时间直接与 Mongo 毫秒时间比较。改为比较升级前后的持久化记录后通过。这是测试比较方法问题，不能描述为迁移改坏了旧数据。
+
+\term{索引诊断的非 UTF-8 主机名。} 本机 Mongo 的 explain 响应包含非 UTF-8 主机名，导致诊断读取异常。只对 explain 命令显式指定替换解码，业务数据读取继续保持严格；第一次仅配置 Database 未生效，之后对 command 显式传参才修正。原失败日志保留。
+
+\term{新旧测试模块同名。} 首次全套运行产生 2 个收集错误，因为新增目录中的测试与旧模块同名。给 \texttt{tests/project2} 增加包标识即可隔离模块名称，无需修改旧测试或弱化断言。后续完整回归通过。
+
+\term{增量字段的端到端保留。} 代码审查补上预览中来源 ObjectId 的序列化，并确保网络模型、BSON 模型、验证器及前端保存均保留 source。还修正固定旧版本不在首批历史页时的选题默认值。这些静态审查修正不虚称为曾经失败的测试。
+
+\subsection{AI 辅助范围与个人决策边界}
+本阶段使用 Codex 读取用户指定的前期聊天、课程任务书、需求变更、原报告和实施 Prompt，辅助实现代码、测试、当前技术文档与独立报告，并实际调用 pytest、PyMongo、Playwright、LaTeX 和 PDF 工具核验结果。没有使用多智能体委派，也没有向外部人员发送消息。
+
+用户确定了不推倒重做、原位维护当前文档、历史证据独立保留、七集合与固定引用加快照等实施约定，并提出本报告的叙事顺序。Agent 在此基础上落实 CAS、题库成员更新、共享撤销竞态、数字分桶和小样本阈值，生成并执行相关测试。
+
+需要如实区分“用户给出的设计与取舍”和“Agent 实现并验证的细节”。本轮没有证据表明用户已经逐行审查或手工修改全部新代码，因此报告不编造人工修改过程，也不把环境或测试比较问题统称为 AI 业务逻辑错误。真实 Prompt 路径、工具、产物、修正与证据集中于第二阶段 \texttt{ai-usage-log.md}，原第一阶段日志不修改。
+
+\section{运行交付与后续改进}
+\subsection{可运行交付与演示}
+已有环境保持原配置，在 \texttt{source/} 执行迁移模块后启动原 Uvicorn 应用即可。演示顺序为：双账号注册；A 建题并分享；创建题库；A、B 各自导入固定版本、发布并填写；A 修改与恢复；查看旧快照、使用关系及统计；B 切换贡献授权并观察范围变化。
+
+交付包括原位扩展的源码、MongoDB 验证器与索引、升级脚本、原路径当前技术文档、新测试、第二阶段原始证据、AI 日志、独立 Markdown 报告及本 LaTeX/PDF。第一阶段报告和测试历史继续保留。精确文件入口及演示步骤见项目 README 和第二阶段索引；报告中的路径均相对代码仓库。
+
+\subsection{局限与演进方向}
+当前系统面向课程规模的单节点副本集，实时统计尚无预聚合，年龄分桶为固定区间。题目不可变性由服务写入路径保证，数据库管理员的直接写入不在应用约束范围；生产环境还应进一步配置最小权限和运维审计。跨用户 3 次样本阈值提供基础抑制，不构成更强的隐私机制。
+
+后续可根据实际数据规模引入受权限约束的缓存或预聚合、可配置数值区间、更细的数据贡献策略，以及明确的备份恢复和多节点运维流程。无论如何优化，都应保留精确版本语义，不能通过实时更新已发布问卷来省去历史快照。
+
+本阶段完成的八项功能共同说明：系统可以在保留原有聚合边界的同时，为新生命周期增加独立身份和版本。数据库演进的重点是让复用、变化与历史解释同时成立，并用原代码差异、旧数据指纹和完整回归证明演进过程没有丢弃第一阶段成果。
+
+
+\section*{附：核心文档与复核入口}
+以下为删去时间等公共字段后的 BSON 结构示例，ID 使用符号 Q/U/S 表示，不冒充实际用户记录。完整必填字段和验证器以源码为准。
+\newpage
+\begin{lstlisting}
+// question_definitions
+{ _id: Q, ownerId: U, currentVersion: 3,
+  visibility: "shared", sharedWith: [U2],
+  forkedFrom: null, archived: false,
+  revision: 5, schemaVersion: 1 }
+
+// question_versions: append-only
+{ questionId: Q, version: 3,
+  parentVersion: 1, changeType: "restore",
+  restoredFromVersion: 1, createdBy: U,
+  content: { type: "number", title: "Age",
+    required: true, options: [],
+    validation: { min: 0, max: 120,
+                  integerOnly: true } },
+  schemaVersion: 1 }
+
+// survey_versions.questions[]
+{ id: "lib_local_a", type: "number",
+  title: "Age", required: true, options: [],
+  validation: { min: 0, max: 120,
+                integerOnly: true },
+  routingRules: [],
+  source: { questionId: Q,
+            questionVersion: 1 } }
+\end{lstlisting}
+上述例子中定义当前为 v3，问卷仍固定 v1，两者并不矛盾。题库成员可以是 \texttt{\{questionId: Q, pinnedVersion: 1\}}，也可以只存 Q，在选题时解析当前版。实际导入始终提交具体版本号。
+
+复核时从 \texttt{docs/project2/README.md} 开始：需求矩阵关联八项功能及测试，迁移记录关联两次指纹结果，测试报告关联完整 JUnit、逐项结果和浏览器截图，变更记录关联原模块及新模块。当前 API、数据库和系统规范继续位于原 \texttt{docs/} 路径，可与 Git 基线比较。
+
+\end{document}

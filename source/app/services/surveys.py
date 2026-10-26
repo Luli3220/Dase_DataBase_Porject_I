@@ -4,7 +4,8 @@ from bson import ObjectId
 from app.core.errors import require, DomainError
 from app.db.mongo import now, oid, transaction
 from app.rules.engine import validate_question_config
-from app.models.documents import SurveyDocument, VersionDocument
+from app.models.documents import SurveyDocument, VersionDocument, questions_to_bson
+from app.services.questions import QuestionService
 
 
 class SurveyService:
@@ -41,14 +42,49 @@ class SurveyService:
         return self.db.survey_versions.find_one({"surveyId": survey["_id"], "version": survey["draftVersion"]})
 
     def edit(self, survey_id, user_id, data):
-        survey = self.owned(survey_id, user_id)
         # Empty draft is allowed to save; all non-empty configurations must be consistent.
         questions = validate_question_config(data["questions"], allow_empty=True)
-        result = self.db.survey_versions.find_one_and_update({"surveyId": survey["_id"], "version": survey["draftVersion"],
-            "state": "draft", "revision": data["expectedRevision"]},
-            {"$set": {"questions": questions, "settings": data["settings"]}, "$inc": {"revision": 1}}, return_document=True)
-        require(result is not None, "草稿已变更或冻结，请刷新", "DRAFT_CONFLICT", 409)
-        return result
+        def operation(session):
+            survey = self.owned(survey_id, user_id, session)
+            old = self.db.survey_versions.find_one({'surveyId': survey['_id'], 'version': survey['draftVersion'],
+                'state': 'draft', 'revision': data['expectedRevision']}, session=session)
+            require(old is not None, '草稿已变更或冻结，请刷新', 'DRAFT_CONFLICT', 409)
+            QuestionService(self.db).validate_sources(questions, old['questions'], user_id, session)
+            result = self.db.survey_versions.find_one_and_update({'_id': old['_id'], 'state': 'draft', 'revision': data['expectedRevision']},
+                {'$set': {'questions': questions_to_bson(questions), 'settings': data['settings']}, '$inc': {'revision': 1}}, return_document=True, session=session)
+            require(result is not None, '草稿已变更或冻结，请刷新', 'DRAFT_CONFLICT', 409)
+            return result
+        return transaction(self.db, operation)
+
+    def import_question(self, survey_id, user_id, question_id, version, revision, replace_local_id=None):
+        def operation(session):
+            survey = self.owned(survey_id, user_id, session)
+            draft = self.db.survey_versions.find_one({'surveyId': survey['_id'], 'version': survey['draftVersion'],
+                'state': 'draft', 'revision': revision}, session=session)
+            require(draft is not None, '草稿已变更或冻结，请刷新', 'DRAFT_CONFLICT', 409)
+            library = QuestionService(self.db)
+            q = library.accessible(question_id, user_id, session, lock=True, active=True)
+            v = library.version(q['_id'], version, session)
+            qs = deepcopy(draft['questions'])
+            if replace_local_id:
+                index = next((i for i, old in enumerate(qs) if old['id'] == replace_local_id), None)
+                require(index is not None, '待替换题目不存在', 'NOT_FOUND', 404)
+                # Keep incoming routing references stable; clear outgoing rules explicitly.
+                local_id = replace_local_id
+            else:
+                require(len(qs) < 100, '问卷最多 100 题')
+                index, local_id = len(qs), 'lib_' + ObjectId().__str__()
+            instance = {'id': local_id, **v['content'], 'routingRules': [],
+                        'source': {'questionId': str(q['_id']), 'questionVersion': version}}
+            if index == len(qs): qs.append(instance)
+            else: qs[index] = instance
+            qs = validate_question_config(qs)
+            library.validate_sources(qs, draft['questions'], user_id, session)
+            result = self.db.survey_versions.find_one_and_update({'_id': draft['_id'], 'state': 'draft', 'revision': revision},
+                {'$set': {'questions': questions_to_bson(qs)}, '$inc': {'revision': 1}}, session=session, return_document=True)
+            require(result is not None, '草稿并发修改冲突', 'DRAFT_CONFLICT', 409)
+            return result
+        return transaction(self.db, operation)
 
     def derive(self, survey_id, user_id):
         def operation(session):

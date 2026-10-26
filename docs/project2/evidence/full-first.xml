@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="2" failures="0" skipped="0" tests="2" time="0.710" timestamp="2026-10-26T15:44:55.559140+08:00" hostname="潇湘"><testcase classname="" name="tests.project2.test_boundaries" time="0.000"><error message="collection failure">import file mismatch:
+imported module 'test_boundaries' has this __file__ attribute:
+  E:\DBMS\Lab\Project1-1\source\tests\integration\test_boundaries.py
+which is not the same as the test file we want to collect:
+  E:\DBMS\Lab\Project1-1\source\tests\project2\test_boundaries.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules</error></testcase><testcase classname="" name="tests.web.test_browser" time="0.000"><error message="collection failure">import file mismatch:
+imported module 'test_browser' has this __file__ attribute:
+  E:\DBMS\Lab\Project1-1\source\tests\project2\test_browser.py
+which is not the same as the test file we want to collect:
+  E:\DBMS\Lab\Project1-1\source\tests\web\test_browser.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules</error></testcase></testsuite></testsuites>
