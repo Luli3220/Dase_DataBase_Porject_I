@@ -1,6 +1,6 @@
 # 文档导航
 
-当前系统的设计与接口说明放在本目录；两个阶段的需求、测试和开发过程分别归档。可以先阅读系统设计，再按需要查看数据库、规则或接口细节。
+本目录整理系统设计、数据库、接口和测试材料。了解整体结构可从系统设计开始，查找具体功能则按下表进入。
 
 ## 当前技术文档
 
@@ -17,11 +17,11 @@
 
 ## 第二阶段材料
 
-[Project 2 索引](project2/README.md)集中整理需求追踪、数据库演进、迁移、变更和 AI 使用过程。
+[Project 2 索引](project2/README.md)整理新增需求、设计演进和开发过程，最近一次完整回归为 167 项通过。
 
 |用途|入口|
 |---|---|
-|查看当前验证结果|[测试记录](project2/test-report.md)、[按轮次查证据](project2/evidence/README.md)|
+|查看当前验证结果|[测试记录](project2/test-report.md)、[测试日志与截图](project2/evidence/README.md)|
 |了解最近的修复|[2026-10-27 保存、分页与统计说明](project2/fixes-2026-10-27.md)|
 |阅读实验报告|[Markdown](project2/final-report.md)、[LaTeX / PDF](project2/report/README.md)|
 

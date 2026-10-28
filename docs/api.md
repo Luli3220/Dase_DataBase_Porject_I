@@ -61,7 +61,7 @@
 
 metadata 使用 SurveyPatch，可为空对象；draft 使用 DraftInput。元信息、草稿和来源检查中的权限锁在同一事务内提交，成功返回 survey 和 revision=1 的 draft。修订冲突、来源不一致或策略锁等失败会整体回滚。
 
-统一接口保存当前可编辑草稿。仅修改元信息时可使用 PATCH，单独修改草稿时可使用 PUT draft；联合原子保存使用 `/save`。冻结或无草稿时，统一接口返回 409，单独元信息编辑仍使用 PATCH。
+`/save` 用于一起保存元信息和当前可编辑草稿；单独修改时，分别使用 PATCH 元信息或 PUT draft。草稿冻结或不存在时，`/save` 返回 409，元信息可通过 PATCH 编辑。
 
 发布时提交 `{"expectedRevision":1}`，将内容冻结为 sealed 并切换公开指针。冻结后中断可沿用相同 revision 重试；继续编辑则派生新草稿。来源题核心内容按固定版本校验，局部修改可解除 source 或显式导入其他版本。导入生成局部 ID；replaceLocalId 指定替换实例时保留该 ID、清空其出边并重新验证整卷。四题示例见 [fixtures.py](../source/tests/fixtures.py)。
 
@@ -155,7 +155,7 @@ version 省略时使用 publishedVersion。统计 mode 默认 `current_effective
 |surveyCount|授权及抑制后，有本次所选提交的去重问卷数|
 |submissionCount|包含目标题实例的所选提交次数|
 |answeredCount|实际存在的目标题答案次数|
-|countUnit|提交次数，不是跨问卷独立人数|
+|countUnit|按提交计次，跨问卷的同一填写者分别计入|
 |exclusions|权限、样本阈值和其他版本的处理说明|
 |options|选择题的 {id,label,count}|
 |mean、distribution、interval|数字均值、{lower,upper,count} 和区间约定|

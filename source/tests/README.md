@@ -1,13 +1,13 @@
 # 测试导航
 
-测试覆盖规则、真实 MongoDB、HTTP API 和 Chromium 页面流程。最近完整结果为 **167 项通过**，原始输出见[2026-10-27 验证目录](../../docs/project2/evidence/fixes-2026-10-27/README.md)。
+测试覆盖规则引擎、MongoDB 数据操作、HTTP API 和 Chromium 页面流程。最近一次完整回归为 **167 项通过**，输出见[2026-10-27 测试目录](../../docs/project2/evidence/fixes-2026-10-27/README.md)。
 
 |目录 / 文件|内容|
 |---|---|
 |[unit/](unit/)|规则引擎、数值边界和答卷响应字段|
 |[integration/](integration/)|数据库、API、匿名、幂等、并发和用户名查询|
 |[web/test_browser.py](web/test_browser.py)|第一阶段桌面与移动端流程|
-|[project2/](project2/README.md)|题目、题库、版本、跨问卷统计及本次修复|
+|[project2/](project2/README.md)|题目、题库、版本、跨问卷统计及保存和分页修复|
 |[conftest.py](conftest.py)|每个测试独立的 MongoDB 数据库|
 |[fixtures.py](fixtures.py)|四题样例和答案输入|
 

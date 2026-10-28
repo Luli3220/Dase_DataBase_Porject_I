@@ -1,30 +1,39 @@
 # 第二阶段测试用例
 
-测试全部使用独立随机 survey_test_<uuid> 数据库，结束只清理自己创建的测试库；不清理开发数据。新用例在 source/tests/project2；旧用例未删除、跳过或弱化。最终每个测试实例的状态在 [逐项结果](evidence/case-results.md)，执行命令及总数见 [报告](test-report.md)。
+第二阶段新增 54 项测试，与第一阶段的 113 项一起执行。用例覆盖题目复用、共享、版本、题库、统计和后续修复，代码见 [source/tests/project2](../../source/tests/project2/README.md)。数据库测试使用独立的随机测试库。
 
-|测试组 / 步骤|输入|预期输出|实际与证据|
+## 题目、题库与问卷集成
+
+|步骤|输入|预期结果|测试入口|
 |---|---|---|---|
-|data：反复初始化、模型/BSON回读|旧用户；无source/有source题；非法routingRules入库|7集合；旧文档不变；BSON ObjectId无损；唯一键拒重|test_data.py，stage-b.xml及full.xml|
-|library：逐题型创建/检索|四题型；空标题、矛盾上下限、bool数值、极大数、额外字段|合法201；非法422；搜索.*按字面处理|test_library.py，stage-c.xml及full.xml|
-|lineage：v1→v2，再由v1创建v3，恢复v1|expectedCurrentVersion、任意parentVersion|单调版本、正确父链；恢复追加；旧记录不变|test_lineage_restore_fork_and_conflict|
-|sharing：A私有→分享B→撤销|合法/缺失用户、大小写重复用户名|私有404；共享可读；B不能改写；撤销后不可新增引用|sharing及private_endpoints用例|
-|bank：创建两题库、加入同一题、更新成员、移除|固定v1、未固定最新、过期revision|不重复；固定不漂移；最新选择解析v2；移除不删原题|sharing_permissions_banks / import_limits用例|
-|import：同一题导入A/B并发布|相同全局Q/v1、不同局部ID|快照内容相同、局部ID不同、历史冻结|test_import.py，stage-d.xml|
-|source：关联题改标题、删除source再编辑|伪造source、合法路由、重复全局题|假来源409；解除后200；路由独立；重复422|source_forgery / snapshots用例|
-|history stability：更新v2、撤销、归档|已发布v1、派生新草稿|旧公开题不变；已保留快照可保存；新引用拒绝|snapshots_sources_upgrade_detach_and_archive|
-|usage：跨元素组合及私有问卷查询|同数组Q/v1与R/v2；查询Q/v2|不得误配；私有记录/数量不泄漏；自有草稿/发布正确区分|usage_visibility_elem_match用例|
-|statistics：数字多次提交再升级版本|18→30，v2再60；multiple负数/小数/边界/安全最大值|先全问卷去重再筛版本；v1有效0；原始2；分桶不重不漏|test_statistics.py，stage-e.xml|
-|choice：跨三问卷汇总单选/多选|a,b,a；[a,b],[b],[a]|单选2/1，多选2/2；单位为提交，不称独立人数|choice_across_surveys两参数实例|
-|path：前题触发结束跳过目标题|存在目标快照但无目标答案|submissionCount=1、answeredCount=0、mean=null|usage_visibility_elem_match_and_skipped_answers|
-|privacy：外部文本问卷贡献授权开关|2份/3份实际回答、贡献false→true→false|2份抑制；3份计入；无文本原文/ID/私密标题；撤销排除|cross_user_consent_suppression用例|
-|concurrency：并发追加/题库/导入|同expected版本或revision|仅一成功，另一显式409；不丢更新、无重复版本|concurrent_append_and_bank / import_concurrency|
-|races：撤销共享对导入，发布对导入|两线程同时操作同定义/草稿|可串行解释；成功快照完整；失败需刷新重试|test_boundaries.py|
-|query audit：真实聚合1000份合成答卷|数字0..999、同一精确题目版本|count1000，mean499.5；分桶合计1000；来源索引IXSCAN、examined=1|aggregation-audit.json；不称容量压测|
-|browser：双账号全链路|A共享/B导入，年龄18/24/30/45，v2与恢复v3|旧问卷v1；mine均值18、贡献后29.25；390px无溢出；无JS异常|test_browser.py、full-browser/p2-*.png|
-|Project1完整回归|原113项原样执行|注册、编辑、发布、四题型、跳转、校验、匿名、幂等、统计继续通过|regression.xml、最终full.xml|
+|初始化数据库并读写来源字段|旧用户、无来源及带来源的题目、重复版本|七集合初始化可重复执行；旧文档不变；来源保存为 BSON ObjectId；唯一索引拒绝重复版本|[数据模型](../../source/tests/project2/test_data.py)|
+|创建和搜索四类题目|合法配置、空标题、矛盾范围、非法数字、额外字段及搜索词 .*|合法请求返回 201，非法配置返回 422；搜索按字面匹配|[题目管理](../../source/tests/project2/test_library.py)|
+|创建历史版本、恢复和 fork|v1→v2，再从 v1 派生；恢复 v1|版本递增并记录实际父版本；恢复追加版本；fork 获得独立身份|[版本与题库](../../source/tests/project2/test_library.py)|
+|共享、使用并撤销|已注册及不存在的用户名、大小写重复用户名、非所有者请求|私有题目返回 404；共享后可读可用；修改权由所有者持有；撤销后新引用被拒绝|[权限边界](../../source/tests/project2/test_boundaries.py)、[共享](../../source/tests/project2/test_library.py)|
+|将同一题加入多个题库，再修改或移除成员|固定 v1、选题时最新、过期 revision|同库成员不重复；固定版本保持不变；最新成员解析新版本；移除只改变成员关系|[题库管理](../../source/tests/project2/test_library.py)|
+|同一题导入两份问卷并发布|相同全局题目和版本|来源相同、局部 ID 不同，发布内容固定|[问卷导入](../../source/tests/project2/test_import.py)|
+|修改关联题的内容、路由或来源|改标题、删除 source、增加局部规则、重复引用同一全局题|内容不一致返回 SOURCE_MISMATCH；解除后可本地编辑；路由独立校验；重复引用被拒绝|[来源校验](../../source/tests/project2/test_import.py)|
+|更新库题、撤销共享和归档|已发布 v1 及其派生草稿|旧问卷继续使用原内容，已有快照可保存，新引用按当前权限判断|[快照稳定性](../../source/tests/project2/test_import.py)|
+|查询使用关系|同数组包含 Q/v1 与 R/v2，查询 Q/v2；查看他人私有问卷|身份与版本匹配同一元素；只返回可见问卷及版本|[使用关系](../../source/tests/project2/test_statistics.py)|
 
-新测试对实际输出使用明确断言，失败不会静默跳过。最终 full.xml 为权威汇总；阶段文件记录各阶段执行，不重复相加充当测试总数。
+## 统计与并发
 
-## 2026-10-27 原子保存、归档分页与统计口径修复
+|步骤|输入|预期结果|测试入口|
+|---|---|---|---|
+|重复填写后升级问卷版本|旧版依次提交 18、30，新版提交 60|latest_only 先跨版本选最新提交；旧版有效数为 0，历史原始数为 2|[统计口径](../../source/tests/project2/test_statistics.py)|
+|跨三份问卷汇总选择题|单选 a、b、a；多选 [a,b]、[b]、[a]|单选频数 2/1，多选频数 2/2，按提交次数统计|[选项频数](../../source/tests/project2/test_statistics.py)|
+|检查数字边界、空数据和跳题|负数、小数、分桶边界、安全极值；前题直接结束|分桶完整且无重复；跳题回答数为 0，空均值为 null|[数值与路径](../../source/tests/project2/test_statistics.py)|
+|切换外部问卷贡献授权|2 次及 3 次文本回答；贡献 false→true→false|2 次样本抑制，3 次计入，撤销后排除；跨问卷结果仅返回聚合字段|[贡献权限](../../source/tests/project2/test_statistics.py)|
+|并发追加版本、修改题库或导入草稿|相同的期望版本或 revision|一个请求成功，另一个返回冲突；版本唯一且更新完整|[版本与题库](../../source/tests/project2/test_library.py)、[导入](../../source/tests/project2/test_import.py)|
+|共享撤销、发布与导入同时进行|两线程操作同一题目或草稿|结果对应完整的先后顺序，发布快照一致，冲突可刷新重试|[并发边界](../../source/tests/project2/test_boundaries.py)|
+|检查聚合结果与来源索引|1,000 份数字答卷，取值 0–999|回答数 1,000、均值 499.5、分桶合计 1,000；来源查询使用 IXSCAN|[查询检查](../../source/tests/project2/test_aggregation_plan.py)|
 
-新增15项后端＋2项浏览器，步骤、输入、预期和实际结果见 [本次修复测试表](fixes-2026-10-27.md)。原150项不修改，当前完整回归167项；原JUnit继续保留，新结果独立保存于 [fixes-2026-10-27/full.xml](evidence/fixes-2026-10-27/full.xml)。
+## 浏览器流程与后续修复
+
+[双账号浏览器测试](../../source/tests/project2/test_browser.py)串联创建、共享、题库选题、发布、填写、版本更新和恢复。年龄输入为 18、24、30、45，检查本人范围均值 18、贡献范围均值 29.25，以及旧问卷 v1 内容和 390px 布局。
+
+2026-10-27 新增 15 项后端和 2 项浏览器测试，覆盖联合保存回滚、冲突时保留输入、归档分页和统计问卷数。详细步骤、输入与结果见[修复测试表](fixes-2026-10-27.md#测试步骤与结果)。
+
+## 执行结果
+
+首轮完整回归为 150 项，后续修复后为 167 项，均全部通过。原认证、四题型、跳转、校验、发布、匿名、幂等提交和单问卷统计一同回归。执行命令与环境见[测试记录](test-report.md)，各项状态见[167 项结果](evidence/fixes-2026-10-27/case-results.md)，各轮输出见[日志索引](evidence/README.md)。

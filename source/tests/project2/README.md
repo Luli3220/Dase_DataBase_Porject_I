@@ -8,7 +8,7 @@
 |[test_statistics.py](test_statistics.py)|6|精确版本、频数、分布、贡献授权与使用查询|
 |[test_boundaries.py](test_boundaries.py)|8|私有接口、规模约束、共享撤销和发布竞态|
 |[test_browser.py](test_browser.py)|1|双账号题目复用、恢复、填写和统计流程|
-|[test_aggregation_plan.py](test_aggregation_plan.py)|1|1,000 份答卷的聚合与来源索引执行计划|
+|[test_aggregation_plan.py](test_aggregation_plan.py)|1|1,000 份答卷的聚合结果与来源索引|
 |[test_fixes_20261027.py](test_fixes_20261027.py)|15|原子保存回滚、归档分页及 surveyCount 边界|
 |[test_fixes_browser_20261027.py](test_fixes_browser_20261027.py)|2|保存冲突输入保留与混合归档分页|
 

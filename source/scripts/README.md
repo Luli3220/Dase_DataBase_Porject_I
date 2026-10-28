@@ -22,4 +22,4 @@ PowerShell 安装和启动脚本可以从仓库根目录调用；Python 模块�
 |[build_evidence.py](build_evidence.py)|读取默认 `full.xml` 生成逐项索引；完整模式同时记录环境并导出 OpenAPI|
 |[audit_project2.py](audit_project2.py)|核对首轮 150 项交付的历史文件、接口、链接及报告同步情况|
 
-后三个脚本沿用首轮验收的默认路径。新一轮回归可按[运行手册](../README.md#4-测试)选择独立输出目录，执行记录将按轮次保存在[证据目录](../../docs/project2/evidence/README.md)。
+后三个脚本的默认路径对应首轮验收。新一轮回归按[运行手册](../README.md#4-测试)创建时间目录，输出可从[日志索引](../../docs/project2/evidence/README.md)查阅。

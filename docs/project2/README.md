@@ -1,34 +1,32 @@
 # Project 2 材料索引
 
-第二阶段围绕题目复用、共享、版本管理、题库和跨问卷统计展开。这里整理设计演进与开发过程；当前完整系统说明见[系统设计](../system-design.md)、[数据库设计](../database-design.md)和[API](../api.md)。
-
-## 最近一次验证
-
-2026-10-27 完整回归 **167 项通过，耗时 64.21 秒**。本次新增统一原子保存、归档题目分页过滤，并说明 `surveyCount` 的统计口径。
-
-- [修复说明与测试步骤](fixes-2026-10-27.md)
-- [本轮日志、JUnit 和截图](evidence/fixes-2026-10-27/README.md)
-- [各轮证据总索引](evidence/README.md)
+第二阶段在原问卷系统上增加题目复用、共享、版本管理、题库和跨问卷统计。本目录整理需求、设计演进及开发记录；系统和接口的完整说明见[文档导航](../README.md)。
 
 ## 设计与实施
 
-|材料|阅读重点|
+|材料|内容|
 |---|---|
-|[需求追踪](requirements-traceability.md)|八项需求与数据模型、接口、页面和测试的对应关系|
-|[数据库演进](database-evolution.md)|从问卷内嵌题目到独立题目身份的设计选择|
-|[升级与回退](migration.md)|Schema、索引更新、旧数据检查和回退步骤|
-|[变更记录](change-log.md)|各轮改动、文件入口和版本基线|
-|[AI 使用日志](ai-usage-log.md)|提示来源、工具、代码产物和问题处理|
+|[需求追踪](requirements-traceability.md)|八项需求对应的数据模型、接口、页面和测试|
+|[数据库演进](database-evolution.md)|从问卷内嵌题目到独立题目版本的设计选择|
+|[升级与回退](migration.md)|数据兼容、升级步骤及回退方法|
+|[变更记录](change-log.md)|主要改动与代码入口|
+|[AI 使用日志](ai-usage-log.md)|设计讨论、Codex 实现及后续检查与修改|
 
-## 测试与报告
+## 测试与运行记录
+
+2026-10-27 完整回归 **167 项通过，耗时 64.21 秒**。在首轮 150 项的基础上，新增 17 项测试覆盖统一保存、归档分页和统计边界。
 
 |材料|内容|
 |---|---|
-|[测试用例](test-cases.md)|功能、权限、并发和统计边界用例|
-|[测试记录](test-report.md)|当前结果及首轮 150 项历史验收|
-|[测试代码导航](../../source/tests/README.md)|原测试与第二阶段新增测试|
-|[证据目录](evidence/README.md)|各轮输出、逐项结果、环境与截图|
-|[项目报告](final-report.md)|第二阶段完整实验报告|
-|[排版报告](report/README.md)|LaTeX 源文件和 7 页 PDF|
+|[测试用例](test-cases.md)|测试步骤、输入与预期结果|
+|[测试记录](test-report.md)|各轮结果、问题处理和运行环境|
+|[保存、分页与统计修复](fixes-2026-10-27.md)|后续检查中发现的问题及具体修改|
+|[日志与截图](evidence/README.md)|控制台输出、JUnit、环境信息和页面截图|
+|[测试代码导航](../../source/tests/README.md)|第一阶段测试与第二阶段新增用例|
 
-当前交付入口为 `main`。首轮第二阶段提交为 `7261649`，修复与文档整理提交为 `71150c8`；第一阶段基线保存在 `project1-baseline-61e2263` 标签中。运行和演示可从[运行手册](../../source/README.md)开始。
+## 报告与使用入口
+
+- [项目报告](final-report.md) · [LaTeX 与 PDF](report/README.md)
+- [安装与演示](../../source/README.md) · [系统设计](../system-design.md) · [数据库设计](../database-design.md) · [API](../api.md)
+
+当前成果位于 `main`，第一阶段基线为 `project1-baseline-61e2263`。首轮实现及后续修复的版本记录见[变更记录](change-log.md)。

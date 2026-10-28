@@ -10,7 +10,7 @@
 mongodump --uri '<副本集URI>' --db survey_dev --out '<备份路径>'
 ```
 
-后续的指纹比较用于核对文档内容；恢复数据使用升级前的数据库备份。
+升级脚本会比较前后文档指纹；需要回退时，使用升级前的备份恢复数据。
 
 ## 执行升级
 
@@ -35,7 +35,7 @@ source 可选，statisticsContribution 缺省按 false 解释，旧题与旧答�
 |survey_versions|6|
 |submissions|6|
 
-完整前后指纹见[首次结果](evidence/migration-first.json)和[再次结果](evidence/migration-second.json)。本次检查覆盖 Schema、索引升级及现有开发数据；数据库备份恢复尚未实测。
+完整前后指纹见[首次结果](evidence/migration-first.json)和[再次结果](evidence/migration-second.json)。本轮检查了 Schema、索引及开发数据，备份恢复列入后续验证。
 
 ## 回退方式
 
@@ -44,4 +44,4 @@ source 可选，statisticsContribution 缺省按 false 解释，旧题与旧答�
 3. 向独立数据库恢复升级前备份，并将旧应用配置指向该数据库。
 4. 验证问卷读取、提交和统计后再切换运行入口。
 
-第一阶段的严格模型只识别当时的字段，不能完整编辑第二阶段新增的 source 文档，因此代码回退应与数据库备份版本配套。第二阶段数据保存在原备份中，后续可继续检查或恢复。
+回退时，应用代码与数据库备份应使用同一阶段的版本。第一阶段模型只识别当时的字段，新增 source 的文档由第二阶段应用处理；回退前保存的第二阶段备份用于后续恢复。

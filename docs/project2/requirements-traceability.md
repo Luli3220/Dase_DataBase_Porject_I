@@ -1,8 +1,8 @@
 # 第二阶段需求追踪
 
-基线：`61e226387140ee7ca9f985bf010769c823253a1c`，本地 Tag `project1-baseline-61e2263`；开发分支 `project2/question-library`。需求来源为用户提供《大作业一：需求变更.pdf》，其原样副本保存在 [project2-changes.pdf](../../requirements/project2-changes.pdf)，实施说明见 [Prompt](../../prompts/Project2_Implementation_Prompt.md)。
+根据[需求变更说明](../../requirements/project2-changes.pdf)，第二阶段共有八项新增需求。下表整理数据结构、接口、页面和测试的对应关系，具体开发约定见[实施 Prompt](../../prompts/Project2_Implementation_Prompt.md)。
 
-|需求|结构|接口|页面|测试组|
+|需求|数据结构|接口|页面|测试组|
 |---|---|---|---|---|
 |1 常用题复用|definitions + versions + source|questions / draft/import-question|题目、问卷编辑器|library/import|
 |2 跨用户共享|ownerId / sharedWith|sharing / fork|共享用户、独立派生|permissions|
@@ -29,4 +29,4 @@
 |R7 题库|[test_library.py](../../source/tests/project2/test_library.py)|[题库截图](evidence/full-browser/p2-bank.png)|
 |R8 跨问卷统计|[test_statistics.py](../../source/tests/project2/test_statistics.py)、[浏览器](../../source/tests/project2/test_browser.py)|[完整JUnit](evidence/full.xml)、[1000份答卷审计](evidence/aggregation-audit.json)|
 
-首轮完整回归 150 项通过，43.57 秒（原 113＋新增 37）。2026-10-27 修复后完整回归为 167 项通过，64.21 秒，新增 17 项覆盖原子保存、归档分页和统计问卷数；见[修复说明](fixes-2026-10-27.md)与[本轮证据](evidence/fixes-2026-10-27/README.md)。
+上表对应首轮 150 项回归。2026-10-27 又补充 17 项保存、分页和统计边界测试，完整回归共 167 项通过，详见[修复说明](fixes-2026-10-27.md)与[测试记录](test-report.md)。

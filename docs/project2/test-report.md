@@ -1,45 +1,59 @@
-# 第二阶段独立测试报告
+# 第二阶段测试记录
 
-## 当前修复验收：2026-10-27
+## 总体结果
 
-**167 passed，0失败/错误/跳过，64.21秒**，包含原150项和本次17项，逐项比对原JUnit确认全部包含。本轮使用独立 [fixes-2026-10-27](evidence/fixes-2026-10-27/) 目录，旧150项原始记录不覆盖。步骤、输入、实际结果和命令见 [本次修复报告](fixes-2026-10-27.md)。
+最近一次完整回归于 **2026-10-27** 完成：**167 项通过，无失败、错误或跳过，耗时 64.21 秒**。其中包含第一阶段的 113 项测试和第二阶段新增的 54 项。
 
-## 首次第二阶段验收：2026-10-26（历史记录）
+|轮次|主要内容|完整回归结果|记录|
+|---|---|---|---|
+|2026-10-26 基线|检查第一阶段功能|113 项通过，29.55 秒|[输出](evidence/baseline.txt)、[JUnit](evidence/baseline.xml)|
+|2026-10-26 首轮实现|题目、版本、共享、题库及跨问卷统计|150 项通过，43.57 秒|[输出](evidence/full.txt)、[JUnit](evidence/full.xml)|
+|2026-10-27 后续修复|统一保存、归档分页和统计边界|167 项通过，64.21 秒|[输出](evidence/fixes-2026-10-27/full.txt)、[JUnit](evidence/fixes-2026-10-27/full.xml)|
 
+各轮的测试组成、截图和环境信息可从[日志索引](evidence/README.md)查看。阶段测试会在完整回归中再次执行，表中数量按每轮完整回归统计。
 
-执行日期：2026-10-26（Asia/Shanghai）。基线 Commit `61e226387140ee7ca9f985bf010769c823253a1c`，Tag `project1-baseline-61e2263`；新实现位于独立分支 `project2/question-library` 的未提交工作树。最终验收：**150 passed / 0 failed / 0 errors / 0 skipped，43.57秒**。其中原测试113项、新增37项。完整 [输出](evidence/full.txt)、[JUnit](evidence/full.xml)、[逐项结果](evidence/case-results.md)、[环境](evidence/environment.json)。第一阶段历史记录不覆盖。
+## 运行环境与命令
 
-环境：Windows，Python3.11.5，MongoDB8.3.11单节点rs0，PyMongo4.19.0，FastAPI0.115.7，Pydantic2.12.5，pytest8.4.2，Playwright1.64.0及Chromium。使用原 .venv 和已有 Mongo 数据目录；测试采用独立随机数据库，浏览器服务在8001临时启动。
+测试使用 Windows、Python 3.11.5、MongoDB 8.3.11 单节点 rs0 副本集、FastAPI 0.115.7、PyMongo 4.19.0、Pydantic 2.12.5、pytest 8.4.2 和 Playwright 1.64.0。详细版本见[环境记录](evidence/fixes-2026-10-27/environment.json)。
 
-从 source 执行的最终命令：
+数据库用例分别创建随机测试库，浏览器用例通过 Chromium 访问本地 8001 端口的临时服务。2026-10-27 在 `source/` 执行的完整回归命令为：
 
 ```powershell
-$env:TEST_EVIDENCE_DIR='../docs/project2/evidence/full-browser'
-..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/project2/evidence/full.xml
-..\.venv\Scripts\python.exe -m scripts.build_evidence
+$env:TEST_EVIDENCE_DIR='../docs/project2/evidence/fixes-2026-10-27/full-browser'
+..\.venv\Scripts\python.exe -m pytest -q --junitxml=../docs/project2/evidence/fixes-2026-10-27/full.xml
 ```
 
-|执行|真实结果|证据|
+后续执行可按[运行手册](../../source/README.md#4-测试)创建新的输出目录。
+
+## 功能与边界检查
+
+首轮测试覆盖四题型、题目版本、恢复、fork、共享权限、题库成员、问卷导入、来源校验、使用关系、跨问卷统计和并发操作。第一阶段的认证、跳转、匿名、幂等提交及单问卷统计也一同回归。步骤和输入见[测试用例](test-cases.md)，逐项结果见[首轮记录](evidence/case-results.md)。
+
+后续新增 15 项后端测试和 2 项浏览器测试，重点检查保存失败回滚、并发冲突、归档题目多页查询，以及无提交、跳题和跨版本替代时的统计数量。完整回归包含首轮全部 150 项，具体结果见[修复说明](fixes-2026-10-27.md)与[167 项逐项记录](evidence/fixes-2026-10-27/case-results.md)。
+
+### 浏览器流程
+
+两个账号完成创建、共享、题库选题、发布、填写、修改版本和恢复的流程。A 问卷填写年龄 18，B 的 multiple 问卷填写 24、30、45；A 自有范围均值为 18，加入 B 授权贡献的数据后为 29.25。题目更新为 v2、恢复为 v3 后，旧问卷仍使用 v1。
+
+浏览器同时检查了保存冲突时输入保留、归档题分页选择，以及 390px 移动端布局。页面截图和服务日志见[本轮浏览器记录](evidence/fixes-2026-10-27/full-browser/)。
+
+### 聚合与升级检查
+
+1,000 份数字答卷取值为 0–999，聚合得到回答数 1,000、均值 499.5，各分桶之和为 1,000。来源查询采用 IXSCAN，检查 1 个索引键和 1 份文档，详见[执行计划](evidence/aggregation-audit.json)。
+
+开发数据库连续执行两次升级，原四集合共 21 份文档的前后指纹一致，步骤与结果见[升级说明](migration.md)。接口、文档链接及文件核对结果见[修复轮次检查](evidence/fixes-2026-10-27/audit.json)。
+
+## 运行中遇到的问题
+
+|问题|处理|原始记录|
 |---|---|---|
-|A 原系统基线|113 passed，29.55s|baseline.txt/xml；截图baseline/|
-|B 模型、验证器、索引|2 passed，0.41s|stage-b.txt/xml|
-|C 题目、共享、版本、题库|16 passed，6.09s|stage-c.txt/xml|
-|D 导入、快照与来源|3 passed，1.67s|stage-d.txt/xml|
-|E 使用关系与跨问卷统计|6 passed，2.91s|stage-e.txt/xml|
-|增量UI后原系统回归|113 passed，25.27s|regression.txt/xml|
-|双账号UI含真实提交、移动端|1 passed，10.02s|browser.txt/xml；browser/p2-*.png|
-|权限与竞态补充|8 passed，3.12s|boundaries.txt/xml|
-|1000份答卷聚合与执行计划|1 passed，0.99s|aggregation.txt/xml；aggregation-audit.json|
-|最终全套|150 passed，43.57s|full.txt/xml；full-browser/|
+|MongoDB 后台进程连接不稳定|使用原数据目录运行常驻进程，再执行测试|[首轮环境与结果](evidence/environment.json)|
+|测试直接比较 Python 微秒与 BSON 毫秒时间|改为比较操作前后的持久化文档|[数据层初次输出](evidence/stage-b-first.txt)|
+|explain 的主机名编码导致诊断失败|为诊断命令单独设置解码方式|[统计初次输出](evidence/stage-e-first.txt)|
+|新旧测试模块同名导致收集冲突|为新增测试目录增加包标识|[收集错误](evidence/full-first.txt)|
 
-阶段结果不能相加作为总数；有些用例在后续完整回归中重复执行，full.xml是最终权威汇总。
+修正后相关用例均通过；编辑器保存、归档分页和统计说明的后续调整见[修复记录](fixes-2026-10-27.md)。
 
-真实失败及修正：初次Mongo后台启动不稳定，改用现有目录的前台托管进程后基线通过；B阶段第一次1 failed/1 passed是BSON毫秒与Python微秒比较，改为比较持久化前后记录；E阶段首次5 passed/1 failed是本机explain返回非UTF8主机名，仅对诊断显式指定宽容解码；最终全套首次2 collection errors是新旧测试文件同名，通过新增project2/__init__.py修正。原输出保留 [B失败](evidence/stage-b-first.txt)、[E失败](evidence/stage-e-first.txt)、[收集错误](evidence/full-first.txt)。没有将首次错误计为通过。
+## 后续验证
 
-真实浏览器证据为 full-browser/p2-bank.png、p2-frozen-snapshot.png、p2-question-history-statistics.png、p2-mobile.png。所有账号为随机测试账号。A拥有的问卷年龄18；B的multiple问卷年龄24、30、45并贡献，mine均值18，共享范围均值29.25；v2更新和恢复为v3后已发布v1不变。页面无JavaScript异常，390px无水平溢出。原浏览器流程也在同次运行执行。
-
-聚合审计：1000份数字答卷0..999，answeredCount=1000、mean=499.5、分桶总和=1000。来源反查查询执行计划IXSCAN，nReturned=1、keysExamined=1、docsExamined=1。该样本只验证持久化聚合与索引可用性，不是生产压测，也不证明全量统计具有固定延迟。
-
-迁移实际连续执行2次，原四集合共21份文档前后SHA256指纹一致，详见 [迁移](migration.md)。最终还执行pip check、JavaScript语法、OpenAPI与路由一致性、旧API保留、历史文件校验及Markdown本地链接检查，机器可复核汇总见 [delivery-audit.json](evidence/delivery-audit.json)。
-
-未验证：Docker容器构建/运行、公网HTTPS部署、Firefox/WebKit、多节点故障转移、生产容量、数据库备份恢复及部署回滚。小样本阈值是基础数据抑制规则，不构成差分隐私或防所有差分查询攻击的证明。
+当前验证覆盖本机单节点副本集和 Chromium。Docker 运行、公网部署、其他浏览器、多节点故障恢复、备份还原及生产负载测试仍待开展。1,000 份答卷用于检查聚合结果与查询计划，容量评估需要更大规模的数据和并发测试。

@@ -2,7 +2,7 @@
 
 [仓库首页](../README.md) · [源码导航](app/README.md) · [脚本说明](scripts/README.md) · [测试导航](tests/README.md)
 
-系统使用 Python 3.11 及以上版本、FastAPI、PyMongo 和 MongoDB。以下以 Windows PowerShell 为例，Python 模块命令在 `source/` 目录执行。
+运行需要 Python 3.11 及以上版本和 MongoDB 副本集。以下以 Windows PowerShell 为例，Python 模块命令均在 `source/` 目录执行。
 
 ## 1. 安装与配置
 
@@ -103,7 +103,7 @@ $env:TEST_EVIDENCE_DIR = (Resolve-Path "$TaskRunDir/browser").Path
 
 单元测试可独立执行；集成测试使用 27018 副本集；浏览器测试在 8001 启动临时服务。每个数据库用例创建随机 `survey_test_<uuid>` 数据库并在结束后清理。
 
-最近一次完整回归于 2026-10-27 得到 **167 项通过**，其中首轮 150 项及本次修复 17 项。结果见[测试记录](../docs/project2/test-report.md)，逐项与原始输出见[证据索引](../docs/project2/evidence/README.md)。既有验收脚本的默认路径见[脚本导航](scripts/README.md)。
+2026-10-27 完整回归 **167 项通过**，包含第一阶段 113 项和第二阶段新增 54 项。结果见[测试记录](../docs/project2/test-report.md)，输出和截图见[日志索引](../docs/project2/evidence/README.md)，测试脚本的用法见[脚本导航](scripts/README.md)。
 
 ## 5. 演示流程
 
@@ -120,7 +120,7 @@ $env:TEST_EVIDENCE_DIR = (Resolve-Path "$TaskRunDir/browser").Path
 1. A 在“题目”创建年龄题 v1，并按 B 的用户名共享。
 2. A 创建题库，添加固定 v1 成员，或设置选题时使用最新版。
 3. A、B 分别创建问卷，从题库选用具体版本，保存、发布和填写。
-4. A 创建 v2，或从 v1 恢复为 v3；旧问卷继续使用原版本。新草稿通过显式替换或解除关联修改题目。
+4. A 修改题目生成 v2，再从 v1 恢复生成 v3；旧问卷继续使用原版本。新草稿可选择其他版本，或解除关联后编辑本地题目。
 5. 在题目页查看使用关系、mine 和已授权贡献范围，以及当前有效和历史原始口径。B 可在问卷编辑页开启贡献，每份外部问卷至少 3 次实际回答后加入聚合。
 6. 试用共享撤销、归档与贡献撤销，查看新引用、历史快照和统计范围的相应变化。
 
